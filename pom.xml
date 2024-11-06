@@ -15,18 +15,6 @@
   <name>chemistry</name>
   <description>chemistry</description>
   <url/>
-  <licenses>
-    <license/>
-  </licenses>
-  <developers>
-    <developer/>
-  </developers>
-  <scm>
-    <connection/>
-    <developerConnection/>
-    <tag/>
-    <url/>
-  </scm>
   <properties>
     <java.version>17</java.version>
   </properties>
@@ -39,9 +27,21 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-devtools</artifactId>
-      <scope>runtime</scope>
       <optional>true</optional>
     </dependency>
+
+    <dependency>
+      <groupId>com.epam.indigo</groupId>
+      <artifactId>indigo</artifactId>
+      <version>1.23.0-dev.3</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.epam.indigo</groupId>
+      <artifactId>indigo-renderer</artifactId>
+      <version>1.23.0-dev.3</version>
+    </dependency>
+
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
