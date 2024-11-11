@@ -3,20 +3,43 @@ package com.github.rspaceos.chemistry.extract;
 import com.epam.indigo.Indigo;
 import com.epam.indigo.IndigoException;
 import com.epam.indigo.IndigoObject;
+import com.github.rspaceos.chemistry.convert.ConvertService;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class IndigoExtractor implements Extractor {
 
-  private final Indigo indigo = new Indigo();
+  private static final Logger LOGGER = LoggerFactory.getLogger(IndigoExtractor.class);
 
   @Override
   public ExtractionResult extract(String input) {
-    IndigoObject inputChemical = indigo.loadMolecule(input);
+    Indigo indigo = new Indigo();
 
+    IndigoObject inputChemical;
+    try{
+      inputChemical = indigo.loadMolecule(input);
+      return getExtractionResult(inputChemical);
+    } catch (IndigoException e) {
+      try{
+        inputChemical = indigo.loadReaction(input);
+        return getExtractionResult(inputChemical);
+      } catch (IndigoException e1) {
+        LOGGER.warn("Unable to parse chemical input: {}", input, e1);
+      }
+    }
+    return new ExtractionResult();
+  }
+
+  private ExtractionResult getExtractionResult(IndigoObject inputChemical) {
     List<Molecule> molecules = new ArrayList<>();
 
     // does each component need checked for subcomponents?
@@ -26,8 +49,8 @@ public class IndigoExtractor implements Extractor {
 
     ExtractionResult result = new ExtractionResult();
     result.setMoleculeInfo(molecules);
+    result.setMolecules(molecules);
     return result;
-
   }
 
   private Molecule makeMolecule(IndigoObject inputChemical){
@@ -41,6 +64,7 @@ public class IndigoExtractor implements Extractor {
         .bondCount(bondCount)
         .formula(formula)
         .exactMass(mass)
+        .role(MoleculeRole.MOLECULE)
         .build();
   }
 

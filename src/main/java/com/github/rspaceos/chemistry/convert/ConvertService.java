@@ -1,6 +1,7 @@
 package com.github.rspaceos.chemistry.convert;
 
 import com.epam.indigo.Indigo;
+import com.epam.indigo.IndigoException;
 import com.epam.indigo.IndigoObject;
 import com.epam.indigo.IndigoRenderer;
 import java.awt.Color;
@@ -8,7 +9,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import javax.imageio.ImageIO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,25 +18,21 @@ import org.springframework.stereotype.Service;
 public class ConvertService {
   private static final Logger LOGGER = LoggerFactory.getLogger(ConvertService.class);
 
-  public String convert(ConvertDTO convertDTO) {
-    if(isImageFormat(convertDTO.outputFormat())){
-      return generateImage(convertDTO);
-    } else {
-      return convertFormat(convertDTO);
-    }
-  }
-
-  private String convertFormat(ConvertDTO convertDTO) {
+  public String convertFormat(ConvertDTO convertDTO) {
     Indigo indigo = new Indigo();
-    IndigoObject mol = indigo.loadMolecule(convertDTO.input());
+    indigo.setOption("ignore-stereochemistry-errors", true);
 
-    LOGGER.info("Converting: {} to format: {}.}", convertDTO.input(), convertDTO.outputFormat());
+    // input can be loaded as molecule or reaction but there doesn't seem to be a way to check
+    // which type it is either before or after attempting to load
+    IndigoObject indigoObject = load(indigo, convertDTO.input());
+
+    LOGGER.info("Converting to format: {}", convertDTO.outputFormat());
 
     return switch (convertDTO.outputFormat()) {
-      case "cdxml" -> mol.cdxml();
-      case "smiles" -> mol.smiles();
-      case "rxn", "rxnfile" -> mol.rxnfile();
-      case "ket" -> mol.json();
+      case "cdxml" -> indigoObject.cdxml();
+      case "smiles" -> indigoObject.smiles();
+      case "rxn", "rxnfile" -> indigoObject.rxnfile();
+      case "ket" -> indigoObject.json();
       default -> {
         LOGGER.warn("Cannot convert to {}", convertDTO.outputFormat());
         yield "";
@@ -44,8 +40,8 @@ public class ConvertService {
     };
   }
 
-  private String generateImage(ConvertDTO convertDTO) {
-    LOGGER.info("Converting: {} to format: {}", convertDTO.input(), convertDTO.outputFormat());
+  public byte[] exportImage(ConvertDTO convertDTO) {
+    LOGGER.info("Exporting image to: {}", convertDTO.outputFormat());
     if(convertDTO.outputFormat().equals("jpg") || convertDTO.outputFormat().equals("jpeg")){
       return convertPngToJpg(convertDTO.input());
     } else {
@@ -53,16 +49,16 @@ public class ConvertService {
     }
   }
 
-  private String convertPngToJpg(String input) {
+  private byte[] convertPngToJpg(String input) {
     Indigo indigo = new Indigo();
     IndigoRenderer renderer = new IndigoRenderer(indigo);
     try {
       File tmpPng = File.createTempFile("pre", ".png");
-      IndigoObject mol = indigo.loadMolecule(input);
+      IndigoObject indigoObject = load(indigo, input);
       indigo.setOption("render-output-format", "png");
       indigo.setOption("render-margins", 10, 10);
-      mol.layout();
-      renderer.renderToFile(mol, tmpPng.getPath());
+      indigoObject.layout();
+      renderer.renderToFile(indigoObject, tmpPng.getPath());
 
       BufferedImage bufferedImage = ImageIO.read(tmpPng);
       ByteArrayOutputStream bufferedImageOut = new ByteArrayOutputStream();
@@ -84,26 +80,39 @@ public class ConvertService {
       // save an image
       ImageIO.write(newBufferedImage, "jpg", bufferedImageOut);
 
-      return bufferedImageOut.toString();
+      return bufferedImageOut.toByteArray();
       //todo: clear tmp file
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
 
-  private String render(String input, String outputFormat) {
-    Indigo indigo = new Indigo();
-    IndigoRenderer renderer = new IndigoRenderer(indigo);
-    IndigoObject mol = indigo.loadMolecule(input);
-    indigo.setOption("render-output-format", outputFormat);
-    indigo.setOption("render-margins", 10, 10);
-    mol.layout();
-    byte[] image = renderer.renderToBuffer(mol);
-    return new String(image);
+  private IndigoObject load(Indigo indigo, String input){
+    // input can be loaded as molecule or reaction but there doesn't seem to be a way to check
+    // which type it is either before or after attempting to load
+    IndigoObject indigoObject;
+    try{
+      indigoObject = indigo.loadMolecule(input);
+    } catch (IndigoException e) {
+      indigoObject = indigo.loadReaction(input);
+    }
+    return indigoObject;
   }
 
-  private boolean isImageFormat(String format) {
-    return format.equals("png") || format.equals("jpg") || format.equals("jpeg") || format.equals("svg");
+  private byte[] render(String input, String outputFormat) {
+    Indigo indigo = new Indigo();
+    IndigoRenderer renderer = new IndigoRenderer(indigo);
+    indigo.setOption("ignore-stereochemistry-errors", true);
+    IndigoObject indigoObject = load(indigo, input);
+
+    indigo.setOption("render-output-format", outputFormat);
+    indigo.setOption("render-margins", 10, 10);
+    indigo.setOption("render-image-size", "1000,1000");
+    indigoObject.layout();
+    byte[] image = renderer.renderToBuffer(indigoObject);
+    renderer.renderToFile(indigoObject, "file-system-file." + outputFormat);
+    return image;
   }
+
 
 }

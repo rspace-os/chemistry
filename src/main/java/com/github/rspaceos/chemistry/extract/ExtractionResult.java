@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 public class ExtractionResult {
   private List<Molecule> moleculeInfo;
+  private List<Molecule> molecules, products, reactants;
   private String formula;
   private boolean isReaction;
 
@@ -45,7 +46,11 @@ public class ExtractionResult {
   }
 
   public List<Molecule> getMolecules() {
-    return filterByRole(MoleculeRole.MOLECULE);
+    return molecules;
+  }
+
+  public void setMolecules(List<Molecule> molecules) {
+    this.molecules = molecules;
   }
 
   private List<Molecule> filterByRole(MoleculeRole role) {
