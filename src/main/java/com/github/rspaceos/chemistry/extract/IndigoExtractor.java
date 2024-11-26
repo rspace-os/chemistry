@@ -22,6 +22,7 @@ public class IndigoExtractor implements Extractor {
 
   @Override
   public ExtractionResult extract(String input) {
+    LOGGER.info("Extracting info for: {}", input);
     Indigo indigo = new Indigo();
 
     IndigoObject inputChemical;
