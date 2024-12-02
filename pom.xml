@@ -43,12 +43,6 @@
     </dependency>
 
     <dependency>
-      <groupId>com.openbabel</groupId>
-      <artifactId>openbabel</artifactId>
-      <version>3.1.1</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
