@@ -25,7 +25,7 @@ public class SearchController {
     return "Saved";
   }
 
-  @GetMapping(value = "/chemistry/search")
+  @PostMapping(value = "/chemistry/search")
   public @ResponseBody List<String> exportImage(@RequestBody String chemicalSearchTerm)
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
     return searchService.search(chemicalSearchTerm);
