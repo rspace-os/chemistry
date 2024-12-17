@@ -19,6 +19,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -29,7 +30,7 @@ public class SearchService {
 
   private static final String format = "smi";
 
-  private static final String OUTPUT_DIR = "src/main/resources/chemical_files";
+  private static final String OUTPUT_DIR = "src/main/resources/chemical_files/";
 //  private static final String format = "inchi";
 
   File nonIndexedChemicals = new File(OUTPUT_DIR + "non-indexed-new-chemicals." + format);
@@ -70,7 +71,7 @@ public class SearchService {
   public void saveChemicalToFile(String chemical, String chemicalId) throws IOException {
     FileWriter fileWriter = new FileWriter(nonIndexedChemicals, true);
     try(PrintWriter printWriter = new PrintWriter(fileWriter);){
-      printWriter.println(chemical + "    " + chemicalId);
+      printWriter.println(chemical + " " + chemicalId);
       printWriter.flush();
       LOGGER.info("Wrote chemical {} to file.", chemical);
     } catch (Exception e){
@@ -103,23 +104,19 @@ public class SearchService {
     return executeCommand(builder);
   }
 
-  private List<String> executeCommand(ProcessBuilder builder){
+  private List<String> executeCommand(ProcessBuilder builder)
+      throws IOException, InterruptedException, ExecutionException, TimeoutException {
+    LOGGER.info("Executing command: {}", builder.command());
     builder.directory(null); // uses current working directory
-    Process p;
-    try {
-      p = builder.start();
-      BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-      List<String> lines = new ArrayList<>();
-      String line;
-      while((line = bufferedReader.readLine()) != null) {
-        LOGGER.info("Search hit: {}", line);
-        lines.add(line);
-      }
-      return lines;
-    } catch (IOException e) {
-      LOGGER.error("Failed to start process");
-    }
-    return Collections.emptyList();
+    Process process = builder.start();
+    List<String> matches = new ArrayList<>();
+    StreamGobbler streamGobbler =
+        new StreamGobbler(process.getInputStream(), matches::add);
+    Future<?> future = executorService.submit(streamGobbler);
+    process.waitFor();
+    future.get(10, TimeUnit.SECONDS);
+    LOGGER.info("Found matches: {}", String.join(", ", matches));
+    return matches;
   }
 
 
@@ -157,5 +154,22 @@ public class SearchService {
       return hits;
     }
     return Collections.emptyList();
+  }
+
+
+  private static class StreamGobbler implements Runnable {
+    private InputStream inputStream;
+    private Consumer<String> consumer;
+
+    public StreamGobbler(InputStream inputStream, Consumer<String> consumer) {
+      this.inputStream = inputStream;
+      this.consumer = consumer;
+    }
+
+    @Override
+    public void run() {
+      new BufferedReader(new InputStreamReader(inputStream)).lines()
+          .forEach(consumer);
+    }
   }
 }
