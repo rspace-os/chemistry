@@ -15,12 +15,7 @@ public class ConvertController {
   }
 
   @PostMapping(value = "/chemistry/convert")
-  public @ResponseBody String convert(@RequestBody ConvertDTO convertDTO){
+  public @ResponseBody String convert(@RequestBody ConvertDTO convertDTO) {
     return convertService.convertFormat(convertDTO);
-  }
-
-  @PostMapping(value = "/chemistry/export")
-  public @ResponseBody byte[] exportImage(@RequestBody ConvertDTO convertDTO){
-    return convertService.exportImage(convertDTO);
   }
 }

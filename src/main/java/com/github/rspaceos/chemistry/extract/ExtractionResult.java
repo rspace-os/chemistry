@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 
 public class ExtractionResult {
   private List<Molecule> moleculeInfo;
-  private List<Molecule> molecules, products, reactants;
+  private List<Molecule> molecules;
   private String formula;
   private boolean isReaction;
 

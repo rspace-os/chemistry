@@ -11,7 +11,7 @@ public class ExtractController {
   private final ExtractService extractService;
 
   @Autowired
-  public ExtractController(ExtractService extractService){
+  public ExtractController(ExtractService extractService) {
     this.extractService = extractService;
   }
 
@@ -19,5 +19,4 @@ public class ExtractController {
   public ExtractionResult extract(@RequestBody ExtractionRequest requestDTO) {
     return extractService.extract(requestDTO);
   }
-
 }

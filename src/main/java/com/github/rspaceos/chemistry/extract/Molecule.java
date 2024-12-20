@@ -10,7 +10,7 @@ public class Molecule {
   private final String name;
   private final MoleculeRole role;
 
-  public Molecule(Builder builder){
+  public Molecule(Builder builder) {
     this.atomCount = builder.atomCount;
     this.bondCount = builder.bondCount;
     this.formalCharge = builder.formalCharge;
@@ -107,5 +107,4 @@ public class Molecule {
       return new Molecule(this);
     }
   }
-
 }

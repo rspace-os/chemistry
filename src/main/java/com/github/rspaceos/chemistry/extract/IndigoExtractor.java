@@ -3,11 +3,6 @@ package com.github.rspaceos.chemistry.extract;
 import com.epam.indigo.Indigo;
 import com.epam.indigo.IndigoException;
 import com.epam.indigo.IndigoObject;
-import com.github.rspaceos.chemistry.convert.ConvertService;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -26,11 +21,11 @@ public class IndigoExtractor implements Extractor {
     Indigo indigo = new Indigo();
 
     IndigoObject inputChemical;
-    try{
+    try {
       inputChemical = indigo.loadMolecule(input);
       return getExtractionResult(inputChemical);
     } catch (IndigoException e) {
-      try{
+      try {
         inputChemical = indigo.loadReaction(input);
         return getExtractionResult(inputChemical);
       } catch (IndigoException e1) {
@@ -44,7 +39,7 @@ public class IndigoExtractor implements Extractor {
     List<Molecule> molecules = new ArrayList<>();
 
     // does each component need checked for subcomponents?
-    for(IndigoObject component: inputChemical.iterateComponents()){
+    for (IndigoObject component : inputChemical.iterateComponents()) {
       molecules.add(makeMolecule(component));
     }
 
@@ -54,7 +49,7 @@ public class IndigoExtractor implements Extractor {
     return result;
   }
 
-  private Molecule makeMolecule(IndigoObject inputChemical){
+  private Molecule makeMolecule(IndigoObject inputChemical) {
     int atomCount = tryIndigoIntOperation(inputChemical::countAtoms);
     int bondCount = tryIndigoIntOperation(inputChemical::countBonds);
     String formula = tryIndigoStringOperation(inputChemical::grossFormula);
@@ -69,7 +64,7 @@ public class IndigoExtractor implements Extractor {
         .build();
   }
 
-  private int tryIndigoIntOperation(Supplier<Integer> indigoOperation){
+  private int tryIndigoIntOperation(Supplier<Integer> indigoOperation) {
     try {
       return indigoOperation.get();
     } catch (IndigoException e) {
@@ -77,7 +72,7 @@ public class IndigoExtractor implements Extractor {
     }
   }
 
-  private double tryIndigoDoubleOperation(Supplier<Double> indigoOperation){
+  private double tryIndigoDoubleOperation(Supplier<Double> indigoOperation) {
     try {
       return indigoOperation.get();
     } catch (IndigoException e) {
@@ -85,7 +80,7 @@ public class IndigoExtractor implements Extractor {
     }
   }
 
-  private String tryIndigoStringOperation(Supplier<String> indigoOperation){
+  private String tryIndigoStringOperation(Supplier<String> indigoOperation) {
     try {
       return indigoOperation.get();
     } catch (IndigoException e) {
