@@ -2,6 +2,7 @@ package com.github.rspaceos.chemistry.convert;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 @Service
 public class ConvertService {
@@ -12,7 +13,7 @@ public class ConvertService {
     this.convertor = convertor;
   }
 
-  public String convertFormat(ConvertDTO convertDTO) {
+  public String convertFormat(@Validated ConvertDTO convertDTO) {
     return convertor.convert(convertDTO);
   }
 }

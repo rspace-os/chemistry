@@ -1,3 +1,5 @@
 package com.github.rspaceos.chemistry.image;
 
-public record ImageDTO(String input, String outputFormat) {}
+import jakarta.validation.constraints.NotNull;
+
+public record ImageDTO(@NotNull String input, @NotNull String outputFormat) {}

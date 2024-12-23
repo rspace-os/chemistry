@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -19,14 +23,14 @@ public class SearchController {
   }
 
   @PostMapping(value = "/chemistry/save")
-  public @ResponseBody String convert(@RequestBody SaveDTO saveDTO) throws IOException {
+  public @ResponseBody String convert(@Valid @RequestBody SaveDTO saveDTO) throws IOException {
     searchService.saveChemicalToFile(saveDTO.chemical(), saveDTO.chemicalId());
     return "Saved";
   }
 
   @PostMapping(value = "/chemistry/search")
-  public @ResponseBody List<String> exportImage(@RequestBody String chemicalSearchTerm)
+  public @ResponseBody List<String> exportImage(@Valid @RequestBody SearchDTO searchDTO)
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
-    return searchService.search(chemicalSearchTerm);
+    return searchService.search(searchDTO.chemicalSearchTerm());
   }
 }

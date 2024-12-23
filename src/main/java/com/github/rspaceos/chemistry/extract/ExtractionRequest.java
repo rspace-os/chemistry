@@ -1,3 +1,5 @@
 package com.github.rspaceos.chemistry.extract;
 
-public record ExtractionRequest(String input) {}
+import jakarta.validation.constraints.NotNull;
+
+public record ExtractionRequest(@NotNull String input) {}

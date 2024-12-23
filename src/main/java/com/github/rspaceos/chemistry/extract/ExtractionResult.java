@@ -1,11 +1,12 @@
 package com.github.rspaceos.chemistry.extract;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ExtractionResult {
-  private List<Molecule> moleculeInfo;
-  private List<Molecule> molecules;
+  private List<Molecule> moleculeInfo = new ArrayList<>();
+  private List<Molecule> molecules = new ArrayList<>();
   private String formula;
   private boolean isReaction;
 

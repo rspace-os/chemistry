@@ -1,3 +1,5 @@
 package com.github.rspaceos.chemistry.convert;
 
-public record ConvertDTO(String input, String outputFormat) {}
+import jakarta.validation.constraints.NotNull;
+
+public record ConvertDTO(@NotNull String input, @NotNull String outputFormat) {}

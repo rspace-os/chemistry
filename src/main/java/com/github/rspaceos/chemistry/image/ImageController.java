@@ -1,5 +1,6 @@
 package com.github.rspaceos.chemistry.image;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,8 +16,8 @@ public class ImageController {
     this.imageService = imageService;
   }
 
-  @PostMapping(value = "/chemistry/export")
-  public @ResponseBody byte[] exportImage(@RequestBody ImageDTO imageDTO) {
+  @PostMapping(value = "/chemistry/image")
+  public @ResponseBody byte[] exportImage(@Valid @RequestBody ImageDTO imageDTO) {
     return imageService.exportImage(imageDTO);
   }
 }
