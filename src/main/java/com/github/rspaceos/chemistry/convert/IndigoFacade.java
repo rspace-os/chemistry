@@ -3,14 +3,7 @@ package com.github.rspaceos.chemistry.convert;
 import com.epam.indigo.Indigo;
 import com.epam.indigo.IndigoException;
 import com.epam.indigo.IndigoObject;
-import com.github.rspaceos.chemistry.extract.ExtractionResult;
-import com.github.rspaceos.chemistry.extract.Molecule;
-import com.github.rspaceos.chemistry.extract.MoleculeRole;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Supplier;
 
 @Service
 public class IndigoFacade {
@@ -33,7 +26,7 @@ public class IndigoFacade {
   /* input can be loaded as molecule or reaction but there doesn't seem to be a way to check
   which type it is either before attempting to load*/
   public IndigoObject load(Indigo indigo, String input) {
-    if(input == null || input.isEmpty()) {
+    if (input == null || input.isEmpty()) {
       throw new ChemistryException("Input is empty");
     }
     IndigoObject indigoObject;
@@ -65,6 +58,4 @@ public class IndigoFacade {
     }
     return indigoObject;
   }
-
-
 }

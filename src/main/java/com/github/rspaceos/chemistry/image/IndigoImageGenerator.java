@@ -4,15 +4,14 @@ import com.epam.indigo.Indigo;
 import com.epam.indigo.IndigoException;
 import com.epam.indigo.IndigoObject;
 import com.epam.indigo.IndigoRenderer;
+import com.github.rspaceos.chemistry.convert.ChemistryException;
+import com.github.rspaceos.chemistry.convert.IndigoFacade;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
-
-import com.github.rspaceos.chemistry.convert.ChemistryException;
-import com.github.rspaceos.chemistry.convert.IndigoFacade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -24,21 +23,20 @@ public class IndigoImageGenerator implements ImageGenerator {
   private final IndigoFacade indigoFacade;
 
   public IndigoImageGenerator(IndigoFacade indigoFacade) {
-      this.indigoFacade = indigoFacade;
+    this.indigoFacade = indigoFacade;
   }
 
   @Override
   public byte[] generateImage(ImageDTO imageDTO) {
     LOGGER.info("Exporting image to: {}", imageDTO.outputFormat());
     String outputFormat = imageDTO.outputFormat();
-    if(outputFormat == null || outputFormat.isEmpty()) {
+    if (outputFormat == null || outputFormat.isEmpty()) {
       throw new ChemistryException("Output format is empty");
     }
     return switch (outputFormat) {
       case "jpg", "jpeg" -> convertPngToJpg(imageDTO.input());
       case "png", "svg" -> render(imageDTO.input(), outputFormat);
-      default ->
-              throw new ChemistryException("Unsupported image format: " + outputFormat);
+      default -> throw new ChemistryException("Unsupported image format: " + outputFormat);
     };
   }
 
@@ -81,9 +79,9 @@ public class IndigoImageGenerator implements ImageGenerator {
     indigo.setOption("render-margins", 10, 10);
     indigo.setOption("render-image-size", "2500,2500");
     indigoObject.layout();
-    try{
+    try {
       return renderer.renderToBuffer(indigoObject);
-    } catch(IndigoException e){
+    } catch (IndigoException e) {
       throw new ChemistryException("Error rendering image", e);
     }
   }

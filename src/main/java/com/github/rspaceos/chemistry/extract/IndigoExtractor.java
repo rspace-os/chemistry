@@ -3,23 +3,19 @@ package com.github.rspaceos.chemistry.extract;
 import com.epam.indigo.Indigo;
 import com.epam.indigo.IndigoException;
 import com.epam.indigo.IndigoObject;
+import com.github.rspaceos.chemistry.convert.IndigoFacade;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
-
-import com.github.rspaceos.chemistry.convert.IndigoFacade;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class IndigoExtractor implements Extractor {
 
-  IndigoFacade indigoFacade;
+  private final IndigoFacade indigoFacade;
 
   public IndigoExtractor(IndigoFacade indigoFacade) {
-      this.indigoFacade = indigoFacade;
+    this.indigoFacade = indigoFacade;
   }
 
   @Override
@@ -48,11 +44,11 @@ public class IndigoExtractor implements Extractor {
     double mass = tryIndigoDoubleOperation(inputChemical::mostAbundantMass);
 
     return new Molecule.Builder()
-            .atomCount(atomCount)
-            .bondCount(bondCount)
-            .exactMass(mass)
-            .role(MoleculeRole.MOLECULE)
-            .build();
+        .atomCount(atomCount)
+        .bondCount(bondCount)
+        .exactMass(mass)
+        .role(MoleculeRole.MOLECULE)
+        .build();
   }
 
   private int tryIndigoIntOperation(Supplier<Integer> indigoOperation) {

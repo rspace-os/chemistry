@@ -1,5 +1,8 @@
 package com.github.rspaceos.chemistry.extract;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.github.rspaceos.chemistry.convert.ChemistryException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -8,14 +11,10 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 @SpringBootTest
 public class IndigoExtractorTest {
 
-  @Autowired
-  IndigoExtractor indigoExtractor;
+  @Autowired IndigoExtractor indigoExtractor;
 
   @Test
   public void whenValidChemical_thenPropertiesExtracted() {
@@ -28,15 +27,17 @@ public class IndigoExtractorTest {
   @ParameterizedTest
   @ValueSource(strings = {"invalid", "1234"})
   public void whenInvalidChem_thenThrowsException(String chemical) {
-    ChemistryException exception = assertThrows(ChemistryException.class, () -> indigoExtractor.extract(chemical));
-    assertEquals("Can't load input as molecule or reaction. Input: " + chemical, exception.getMessage());
+    ChemistryException exception =
+        assertThrows(ChemistryException.class, () -> indigoExtractor.extract(chemical));
+    assertEquals(
+        "Can't load input as molecule or reaction. Input: " + chemical, exception.getMessage());
   }
 
   @ParameterizedTest
   @NullAndEmptySource
   public void whenNullOrEmptyChem_thenThrowsException(String chemical) {
-    ChemistryException exception = assertThrows(ChemistryException.class, () -> indigoExtractor.extract(chemical));
+    ChemistryException exception =
+        assertThrows(ChemistryException.class, () -> indigoExtractor.extract(chemical));
     assertEquals("Input is empty", exception.getMessage());
   }
-
 }

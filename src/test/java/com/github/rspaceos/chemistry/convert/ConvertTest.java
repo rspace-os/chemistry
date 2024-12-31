@@ -12,7 +12,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -65,7 +64,8 @@ public class ConvertTest {
               convertor.convert(convertDTO);
             });
 
-    assertEquals("Can't load input as molecule or reaction. Input: not-smiles", exception.getMessage());
+    assertEquals(
+        "Can't load input as molecule or reaction. Input: not-smiles", exception.getMessage());
   }
 
   @Disabled
@@ -86,7 +86,7 @@ public class ConvertTest {
     assertTrue(result.contains("C"));
   }
 
-  @Disabled // mutlitple files fail to be read by indigo
+  @Disabled // multiple files fail to be read by indigo
   @ParameterizedTest
   @MethodSource("readFiles")
   public void whenValidChemicalFile_thenConversionToKetIsSuccessful(String fileContents) {

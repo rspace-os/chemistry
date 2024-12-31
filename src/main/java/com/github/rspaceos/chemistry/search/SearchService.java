@@ -40,7 +40,7 @@ public class SearchService {
 
   private File index;
 
-  ExecutorService executorService = Executors.newSingleThreadExecutor();
+  final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
   @PostConstruct
   public void initFiles() throws IOException {
@@ -147,11 +147,12 @@ public class SearchService {
     return Collections.emptyList();
   }
 
-  private record StreamGobbler(InputStream inputStream, Consumer<String> consumer) implements Runnable {
+  private record StreamGobbler(InputStream inputStream, Consumer<String> consumer)
+      implements Runnable {
 
     @Override
-      public void run() {
-        new BufferedReader(new InputStreamReader(inputStream)).lines().forEach(consumer);
-      }
+    public void run() {
+      new BufferedReader(new InputStreamReader(inputStream)).lines().forEach(consumer);
     }
+  }
 }
