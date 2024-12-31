@@ -6,33 +6,26 @@ import com.epam.indigo.IndigoObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
+
+import com.github.rspaceos.chemistry.convert.IndigoFacade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class IndigoExtractor implements Extractor {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(IndigoExtractor.class);
+  IndigoFacade indigoFacade;
+
+  public IndigoExtractor(IndigoFacade indigoFacade) {
+      this.indigoFacade = indigoFacade;
+  }
 
   @Override
   public ExtractionResult extract(String input) {
-    LOGGER.info("Extracting info for: {}", input);
-    Indigo indigo = new Indigo();
-
-    IndigoObject inputChemical;
-    try {
-      inputChemical = indigo.loadMolecule(input);
-      return getExtractionResult(inputChemical);
-    } catch (IndigoException e) {
-      try {
-        inputChemical = indigo.loadReaction(input);
-        return getExtractionResult(inputChemical);
-      } catch (IndigoException e1) {
-        LOGGER.warn("Unable to parse chemical input: {}", input, e1);
-      }
-    }
-    return new ExtractionResult();
+    IndigoObject inputChemical = indigoFacade.load(new Indigo(), input);
+    return getExtractionResult(inputChemical);
   }
 
   private ExtractionResult getExtractionResult(IndigoObject inputChemical) {
@@ -52,16 +45,14 @@ public class IndigoExtractor implements Extractor {
   private Molecule makeMolecule(IndigoObject inputChemical) {
     int atomCount = tryIndigoIntOperation(inputChemical::countAtoms);
     int bondCount = tryIndigoIntOperation(inputChemical::countBonds);
-    String formula = tryIndigoStringOperation(inputChemical::grossFormula);
     double mass = tryIndigoDoubleOperation(inputChemical::mostAbundantMass);
 
     return new Molecule.Builder()
-        .atomCount(atomCount)
-        .bondCount(bondCount)
-        .formula(formula)
-        .exactMass(mass)
-        .role(MoleculeRole.MOLECULE)
-        .build();
+            .atomCount(atomCount)
+            .bondCount(bondCount)
+            .exactMass(mass)
+            .role(MoleculeRole.MOLECULE)
+            .build();
   }
 
   private int tryIndigoIntOperation(Supplier<Integer> indigoOperation) {
@@ -77,14 +68,6 @@ public class IndigoExtractor implements Extractor {
       return indigoOperation.get();
     } catch (IndigoException e) {
       return 0;
-    }
-  }
-
-  private String tryIndigoStringOperation(Supplier<String> indigoOperation) {
-    try {
-      return indigoOperation.get();
-    } catch (IndigoException e) {
-      return "";
     }
   }
 }

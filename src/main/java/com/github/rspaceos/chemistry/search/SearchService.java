@@ -32,28 +32,29 @@ public class SearchService {
   private String format;
 
   @Value("${search.file.dir}")
-  private String OUTPUT_DIR;
+  private String outputDir;
 
   private File nonIndexedChemicals;
 
   private File indexedChemicals;
 
   private File index;
+
   ExecutorService executorService = Executors.newSingleThreadExecutor();
 
   @PostConstruct
   public void initFiles() throws IOException {
-    File dataDir = new File(OUTPUT_DIR);
+    File dataDir = new File(outputDir);
     if (!dataDir.exists()) {
       dataDir.mkdirs();
     }
-    nonIndexedChemicals = new File(OUTPUT_DIR + "/indexed." + format);
+    nonIndexedChemicals = new File(outputDir + "/non-indexed." + format);
     nonIndexedChemicals.createNewFile();
 
-    indexedChemicals = new File(OUTPUT_DIR + "/non-indexed." + format);
+    indexedChemicals = new File(outputDir + "/indexed." + format);
     indexedChemicals.createNewFile();
 
-    index = new File(OUTPUT_DIR + "/index.fs");
+    index = new File(outputDir + "/index.fs");
     index.createNewFile();
   }
 
@@ -88,10 +89,6 @@ public class SearchService {
     return executeCommand(builder);
   }
 
-  /***
-   * Find partial match of the given search terms
-   * @param searchTerm smiles/smarts format chemical
-   */
   public List<String> searchIndexedFile(String searchTerm)
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
     ProcessBuilder builder = new ProcessBuilder();
@@ -150,18 +147,11 @@ public class SearchService {
     return Collections.emptyList();
   }
 
-  private static class StreamGobbler implements Runnable {
-    private final InputStream inputStream;
-    private final Consumer<String> consumer;
-
-    public StreamGobbler(InputStream inputStream, Consumer<String> consumer) {
-      this.inputStream = inputStream;
-      this.consumer = consumer;
-    }
+  private record StreamGobbler(InputStream inputStream, Consumer<String> consumer) implements Runnable {
 
     @Override
-    public void run() {
-      new BufferedReader(new InputStreamReader(inputStream)).lines().forEach(consumer);
+      public void run() {
+        new BufferedReader(new InputStreamReader(inputStream)).lines().forEach(consumer);
+      }
     }
-  }
 }
