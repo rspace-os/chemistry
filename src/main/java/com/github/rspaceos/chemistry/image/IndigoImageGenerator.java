@@ -54,12 +54,10 @@ public class IndigoImageGenerator implements ImageGenerator {
       BufferedImage bufferedImage = ImageIO.read(tmpPng);
       ByteArrayOutputStream bufferedImageOut = new ByteArrayOutputStream();
 
-      // create a blank, RGB, same width and height
       BufferedImage newBufferedImage =
           new BufferedImage(
               bufferedImage.getWidth(), bufferedImage.getHeight(), BufferedImage.TYPE_INT_RGB);
 
-      // draw the image on a white background
       newBufferedImage.createGraphics().drawImage(bufferedImage, 0, 0, Color.WHITE, null);
       ImageIO.write(newBufferedImage, "jpg", bufferedImageOut);
       tmpPng.delete();

@@ -68,7 +68,7 @@ public class ConvertTest {
         "Can't load input as molecule or reaction. Input: not-smiles", exception.getMessage());
   }
 
-  @Disabled
+  @Disabled // some files fail to be loaded by indigo
   @ParameterizedTest
   @ValueSource(strings = {"", "something", "123"})
   public void whenValidChemicalFile_thenConversionToCdxmlIsSuccessful(String filename) {
@@ -77,7 +77,7 @@ public class ConvertTest {
     assertTrue(result.contains("cdxml"));
   }
 
-  @Disabled
+  @Disabled // some files fail to be loaded by indigo
   @ParameterizedTest
   @ValueSource(strings = {"", "something", "123"})
   public void whenValidChemicalFile_thenConversionToSmilesIsSuccessful(String filename) {
@@ -86,7 +86,7 @@ public class ConvertTest {
     assertTrue(result.contains("C"));
   }
 
-  @Disabled // multiple files fail to be read by indigo
+  @Disabled // some files fail to be loaded by indigo
   @ParameterizedTest
   @MethodSource("readFiles")
   public void whenValidChemicalFile_thenConversionToKetIsSuccessful(String fileContents) {
@@ -101,8 +101,6 @@ public class ConvertTest {
       return paths
           .filter(Files::isRegularFile)
           .filter(path -> !path.toString().endsWith(".cdx"))
-          //              .filter(path ->
-          // path.toString().endsWith("6-Bromoindigo_synthesis.cxsmarts"))
           .map(
               path -> {
                 try {

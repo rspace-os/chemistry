@@ -58,11 +58,6 @@ public class SearchService {
     index.createNewFile();
   }
 
-  /***
-   * Add the chemical string to the non-indexed chemicals file
-   * @param chemical smiles/smarts format chemical
-   * @param chemicalId id of RSChemElement entity from rspace-web database
-   */
   public void saveChemicalToFile(String chemical, String chemicalId) throws IOException {
     FileWriter fileWriter = new FileWriter(nonIndexedChemicals, true);
     try (PrintWriter printWriter = new PrintWriter(fileWriter)) {
@@ -74,10 +69,6 @@ public class SearchService {
     }
   }
 
-  /***
-   * Search the non-indexed file for chemical matches
-   * @param searchTerm smiles/smarts format chemical
-   */
   public List<String> searchNonIndexedFile(String searchTerm)
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
     ProcessBuilder builder = new ProcessBuilder();
