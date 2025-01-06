@@ -67,4 +67,7 @@ to be searched via the `/chemical/save` endpoint. Chemicals are stored in smiles
 When a search is performed, OpenBabel checks the chemistry file for any structure or substructure matches, and returns a
 list of ids for those matches.
 
+## Swagger
+Auto-generated swagger documentation is available at (by default) `http://localhost:8090/swagger-ui/index.html`
+
 
