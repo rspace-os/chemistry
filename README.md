@@ -44,7 +44,7 @@ The app provides the following functionality:
 
 ### Conversion
 Conversion is supported from any format supported by Indigo, to the formats listed in 
-`com.github.rspaceos.chemistry.convert.IndigoFacade.convert`
+`com.github.rspaceos.chemistry.util.IndigoFacade.convert`
 
 ### Extraction
 Basic information is extracted from chemicals using the Indigo library. Information currently extracted is:

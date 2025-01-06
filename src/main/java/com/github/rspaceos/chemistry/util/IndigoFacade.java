@@ -1,8 +1,10 @@
-package com.github.rspaceos.chemistry.convert;
+package com.github.rspaceos.chemistry.util;
 
 import com.epam.indigo.Indigo;
 import com.epam.indigo.IndigoException;
 import com.epam.indigo.IndigoObject;
+import com.github.rspaceos.chemistry.convert.ChemistryException;
+import com.github.rspaceos.chemistry.convert.ConvertDTO;
 import org.springframework.stereotype.Service;
 
 @Service

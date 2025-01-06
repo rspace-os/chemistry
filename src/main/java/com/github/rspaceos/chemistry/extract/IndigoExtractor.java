@@ -3,7 +3,7 @@ package com.github.rspaceos.chemistry.extract;
 import com.epam.indigo.Indigo;
 import com.epam.indigo.IndigoException;
 import com.epam.indigo.IndigoObject;
-import com.github.rspaceos.chemistry.convert.IndigoFacade;
+import com.github.rspaceos.chemistry.util.IndigoFacade;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -27,7 +27,6 @@ public class IndigoExtractor implements Extractor {
   private ExtractionResult getExtractionResult(IndigoObject inputChemical) {
     List<Molecule> molecules = new ArrayList<>();
 
-    // does each component need checked for subcomponents?
     for (IndigoObject component : inputChemical.iterateComponents()) {
       molecules.add(makeMolecule(component));
     }

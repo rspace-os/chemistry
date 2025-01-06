@@ -1,5 +1,6 @@
 package com.github.rspaceos.chemistry.convert;
 
+import com.github.rspaceos.chemistry.util.IndigoFacade;
 import org.springframework.stereotype.Service;
 
 @Service

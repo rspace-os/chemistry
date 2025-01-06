@@ -5,7 +5,7 @@ import com.epam.indigo.IndigoException;
 import com.epam.indigo.IndigoObject;
 import com.epam.indigo.IndigoRenderer;
 import com.github.rspaceos.chemistry.convert.ChemistryException;
-import com.github.rspaceos.chemistry.convert.IndigoFacade;
+import com.github.rspaceos.chemistry.util.IndigoFacade;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;

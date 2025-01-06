@@ -111,6 +111,7 @@ public class SearchService {
     return matches;
   }
 
+  // not currently configured
   private void combineChemicalFiles() throws IOException {
     File out = new File(indexedChemicals.getPath());
     FileWriter fileWriter = new FileWriter(out, true);
@@ -129,6 +130,7 @@ public class SearchService {
     }
   }
 
+  // not currently configured
   private void createIndexFile()
       throws IOException, InterruptedException, ExecutionException, TimeoutException {
     ProcessBuilder builder = new ProcessBuilder();
