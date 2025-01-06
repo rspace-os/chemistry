@@ -17,14 +17,14 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 public class ConvertControllerTest {
   @Autowired private MockMvc mockMvc;
 
-  @MockitoBean private Convertor convertor;
+  @MockitoBean private ConvertService convertService;
 
   private static final String ENDPOINT = "/chemistry/convert";
 
   @Test
   void whenValidRequest_thenReturns200AndResult() throws Exception {
     String smiles = "CCC";
-    when(convertor.convert(any())).thenReturn(smiles);
+    when(convertService.convert(any())).thenReturn(smiles);
     String validRequestBody =
         """
             {

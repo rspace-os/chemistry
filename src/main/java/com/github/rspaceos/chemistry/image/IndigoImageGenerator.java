@@ -12,14 +12,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class IndigoImageGenerator implements ImageGenerator {
-  private static final Logger LOGGER = LoggerFactory.getLogger(IndigoImageGenerator.class);
-
   private final IndigoFacade indigoFacade;
 
   public IndigoImageGenerator(IndigoFacade indigoFacade) {
@@ -28,7 +24,6 @@ public class IndigoImageGenerator implements ImageGenerator {
 
   @Override
   public byte[] generateImage(ImageDTO imageDTO) {
-    LOGGER.info("Exporting image to: {}", imageDTO.outputFormat());
     String outputFormat = imageDTO.outputFormat();
     if (outputFormat == null || outputFormat.isEmpty()) {
       throw new ChemistryException("Output format is empty");

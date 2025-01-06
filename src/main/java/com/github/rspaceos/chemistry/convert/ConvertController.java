@@ -9,14 +9,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ConvertController {
 
-  private final Convertor convertor;
+  private final ConvertService convertService;
 
-  public ConvertController(Convertor convertor) {
-    this.convertor = convertor;
+  public ConvertController(ConvertService convertService) {
+    this.convertService = convertService;
   }
 
   @PostMapping(value = "/chemistry/convert")
   public @ResponseBody String convert(@Valid @RequestBody ConvertDTO convertDTO) {
-    return convertor.convert(convertDTO);
+    return convertService.convert(convertDTO);
   }
 }

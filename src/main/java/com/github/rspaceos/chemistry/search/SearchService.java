@@ -94,8 +94,9 @@ public class SearchService {
     builder.directory(null); // uses current working directory
     Process process = builder.start();
     List<String> matches = new ArrayList<>();
-    StreamGobbler streamGobbler = new StreamGobbler(process.getInputStream(), matches::add);
-    Future<?> future = executorService.submit(streamGobbler);
+    InputStreamConsumer streamConsumer =
+        new InputStreamConsumer(process.getInputStream(), matches::add);
+    Future<?> future = executorService.submit(streamConsumer);
     process.waitFor();
     future.get(10, TimeUnit.SECONDS);
     LOGGER.info("Found matches: {}", String.join(", ", matches));
@@ -140,7 +141,10 @@ public class SearchService {
     return Collections.emptyList();
   }
 
-  private record StreamGobbler(InputStream inputStream, Consumer<String> consumer)
+  /***
+   * Perform an action on each line of an input stream
+   */
+  private record InputStreamConsumer(InputStream inputStream, Consumer<String> consumer)
       implements Runnable {
 
     @Override
