@@ -70,7 +70,7 @@ public class IndigoImageGenerator implements ImageGenerator {
 
     indigo.setOption("render-output-format", outputFormat);
     indigo.setOption("render-margins", 10, 10);
-    indigo.setOption("render-image-size", "2500,2500");
+    indigo.setOption("render-image-size", "100,100");
     indigoObject.layout();
     try {
       return renderer.renderToBuffer(indigoObject);
