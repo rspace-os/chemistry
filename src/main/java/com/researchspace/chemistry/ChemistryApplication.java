@@ -1,4 +1,4 @@
-package com.github.rspaceos.chemistry;
+package com.researchspace.chemistry;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -9,5 +9,4 @@ public class ChemistryApplication {
   public static void main(String[] args) {
     SpringApplication.run(ChemistryApplication.class, args);
   }
-
 }
