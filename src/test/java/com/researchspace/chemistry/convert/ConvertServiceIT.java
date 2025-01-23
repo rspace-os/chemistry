@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.researchspace.chemistry.ChemistryException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,6 +13,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.commons.io.FilenameUtils;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -21,22 +23,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-public class ConvertTest {
+public class ConvertServiceIT {
 
-  @Autowired private Convertor convertor;
+  @Autowired ConvertService convertService;
+
+  private static final String VALID_CDXML_START = "<?xml version=\"1.0\"?>\n<!DOCTYPE CDXML";
 
   @Test
   public void whenValidRequest_thenConversionIsSuccessful() {
-    ConvertDTO convertDTO = new ConvertDTO("CCC", "cdxml");
-    String result = convertor.convert(convertDTO);
-    assertTrue(result.contains("cdxml")); // todo: check for valid cdxml
+    ConvertDTO convertDTO = new ConvertDTO("CCC", "smi", "cdxml");
+    String result = convertService.convert(convertDTO);
+    assertTrue(result.startsWith(VALID_CDXML_START));
   }
 
   @ParameterizedTest
   @ValueSource(strings = {"cdxml", "smiles", "ket"})
   public void whenSupportedFormat_thenConversionIsSuccessful(String outputFormat) {
     ConvertDTO convertDTO = new ConvertDTO("CCC.CCC", outputFormat);
-    String result = convertor.convert(convertDTO);
+    String result = convertService.convert(convertDTO);
     assertFalse(result.isEmpty());
   }
 
@@ -48,10 +52,11 @@ public class ConvertTest {
             ChemistryException.class,
             () -> {
               ConvertDTO convertDTO = new ConvertDTO("CCC", outputFormat);
-              convertor.convert(convertDTO);
+              convertService.convert(convertDTO);
             });
 
-    assertEquals("Unsupported output format: " + outputFormat, exception.getMessage());
+    assertEquals(
+        String.format("Unable to perform conversion to %s.", outputFormat), exception.getMessage());
   }
 
   @Test
@@ -61,42 +66,51 @@ public class ConvertTest {
             ChemistryException.class,
             () -> {
               ConvertDTO convertDTO = new ConvertDTO("not-smiles", "cdxml");
-              convertor.convert(convertDTO);
+              convertService.convert(convertDTO);
             });
 
     assertEquals(
         "Can't load input as molecule or reaction. Input: not-smiles", exception.getMessage());
   }
 
-  @Disabled // some files fail to be loaded by indigo
+  @Disabled
   @ParameterizedTest
-  @ValueSource(strings = {"", "something", "123"})
-  public void whenValidChemicalFile_thenConversionToCdxmlIsSuccessful(String filename) {
-    ConvertDTO convertDTO = new ConvertDTO("src/test/resources/" + filename, "cdxml");
-    String result = convertor.convert(convertDTO);
-    assertTrue(result.contains("cdxml"));
+  @MethodSource("readFilesForCdxmlConversion")
+  public void whenValidChemicalFile_thenConversionToCdxmlIsSuccessful(ConvertDTO convertDTO) {
+    String result = convertService.convert(convertDTO);
+    assertTrue(result.contains(VALID_CDXML_START));
   }
 
-  @Disabled // some files fail to be loaded by indigo
+  @Disabled
   @ParameterizedTest
-  @ValueSource(strings = {"", "something", "123"})
-  public void whenValidChemicalFile_thenConversionToSmilesIsSuccessful(String filename) {
-    ConvertDTO convertDTO = new ConvertDTO("src/test/resources/" + filename, "smiles");
-    String result = convertor.convert(convertDTO);
+  @MethodSource("readFilesForSmilesConversion")
+  public void whenValidChemicalFile_thenConversionToSmilesIsSuccessful(ConvertDTO convertDTO) {
+    String result = convertService.convert(convertDTO);
     assertTrue(result.contains("C"));
   }
 
-  @Disabled // some files fail to be loaded by indigo
+  @Disabled
   @ParameterizedTest
-  @MethodSource("readFiles")
-  public void whenValidChemicalFile_thenConversionToKetIsSuccessful(String fileContents) {
-    ConvertDTO convertDTO = new ConvertDTO(fileContents, "cdxml");
-    String result = convertor.convert(convertDTO);
-    System.out.println(result);
-    assertTrue(result.contains("cdxml"));
+  @MethodSource("readFilesForKetConversion")
+  public void whenValidChemicalFile_thenConversionToKetIsSuccessful(ConvertDTO convertDTO) {
+    String validKetcherStart = "\"root\":{\"nodes";
+    String result = convertService.convert(convertDTO);
+    assertTrue(result.contains(validKetcherStart));
   }
 
-  private static List<String> readFiles() throws Exception {
+  private static List<ConvertDTO> readFilesForCdxmlConversion() throws Exception {
+    return readFiles("cdxml");
+  }
+
+  private static List<ConvertDTO> readFilesForSmilesConversion() throws Exception {
+    return readFiles("smi");
+  }
+
+  private static List<ConvertDTO> readFilesForKetConversion() throws Exception {
+    return readFiles("ket");
+  }
+
+  private static List<ConvertDTO> readFiles(String outputFormat) throws Exception {
     try (Stream<Path> paths = Files.walk(Paths.get("src/test/resources"))) {
       return paths
           .filter(Files::isRegularFile)
@@ -104,7 +118,10 @@ public class ConvertTest {
           .map(
               path -> {
                 try {
-                  return Files.readString(path);
+                  return new ConvertDTO(
+                      Files.readString(path),
+                      FilenameUtils.getExtension(path.toString()),
+                      outputFormat);
                 } catch (IOException e) {
                   throw new RuntimeException("Error reading file: " + path, e);
                 }

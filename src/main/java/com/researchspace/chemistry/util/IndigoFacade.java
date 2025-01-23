@@ -3,26 +3,35 @@ package com.researchspace.chemistry.util;
 import com.epam.indigo.Indigo;
 import com.epam.indigo.IndigoException;
 import com.epam.indigo.IndigoObject;
-import com.researchspace.chemistry.convert.ChemistryException;
+import com.researchspace.chemistry.ChemistryException;
 import com.researchspace.chemistry.convert.ConvertDTO;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 @Service
 public class IndigoFacade {
 
-  public String convert(ConvertDTO convertDTO) {
+  public Optional<String> convert(ConvertDTO convertDTO) {
     Indigo indigo = new Indigo();
     indigo.setOption("ignore-stereochemistry-errors", true);
 
-    IndigoObject indigoObject = load(indigo, convertDTO.input());
-
-    return switch (convertDTO.outputFormat()) {
-      case "cdxml" -> indigoObject.cdxml();
-      case "smiles" -> indigoObject.smiles();
-      case "ket" -> indigoObject.json();
-      default ->
-          throw new ChemistryException("Unsupported output format: " + convertDTO.outputFormat());
-    };
+    IndigoObject indigoObject;
+    try {
+      indigoObject = load(indigo, convertDTO.input());
+      String converted =
+          switch (convertDTO.outputFormat()) {
+            case "cdxml" -> indigoObject.cdxml();
+            case "smiles" -> indigoObject.smiles();
+            case "ket" -> indigoObject.json();
+            default -> "";
+          };
+      if (converted.isEmpty()) {
+        return Optional.empty();
+      }
+      return Optional.of(converted);
+    } catch (IndigoException e) {
+      return Optional.empty();
+    }
   }
 
   /* input can be loaded as molecule or reaction but there doesn't seem to be a way to check

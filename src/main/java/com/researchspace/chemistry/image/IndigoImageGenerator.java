@@ -4,7 +4,7 @@ import com.epam.indigo.Indigo;
 import com.epam.indigo.IndigoException;
 import com.epam.indigo.IndigoObject;
 import com.epam.indigo.IndigoRenderer;
-import com.researchspace.chemistry.convert.ChemistryException;
+import com.researchspace.chemistry.ChemistryException;
 import com.researchspace.chemistry.util.IndigoFacade;
 import java.awt.*;
 import java.awt.image.BufferedImage;

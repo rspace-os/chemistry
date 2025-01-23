@@ -1,9 +1,11 @@
-package com.researchspace.chemistry.convert;
+package com.researchspace.chemistry.convert.convertor;
 
+import com.researchspace.chemistry.convert.ConvertDTO;
 import com.researchspace.chemistry.util.IndigoFacade;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 
-@Service
+@Service("IndigoConvertor")
 public class IndigoConvertor implements Convertor {
   private final IndigoFacade indigo;
 
@@ -12,7 +14,7 @@ public class IndigoConvertor implements Convertor {
   }
 
   @Override
-  public String convert(ConvertDTO convertDTO) throws ChemistryException {
+  public Optional<String> convert(ConvertDTO convertDTO) {
     return indigo.convert(convertDTO);
   }
 }
