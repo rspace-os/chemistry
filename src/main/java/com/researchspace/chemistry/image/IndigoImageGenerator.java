@@ -12,10 +12,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 @Service
 public class IndigoImageGenerator implements ImageGenerator {
+  private static final String DEFAULT_WIDTH_HEIGHT = "500";
+
   private final IndigoFacade indigoFacade;
 
   public IndigoImageGenerator(IndigoFacade indigoFacade) {
@@ -29,18 +32,18 @@ public class IndigoImageGenerator implements ImageGenerator {
       throw new ChemistryException("Output format is empty");
     }
     return switch (outputFormat) {
-      case "jpg", "jpeg" -> convertPngToJpg(imageDTO.input());
-      case "png", "svg" -> render(imageDTO.input(), outputFormat);
+      case "jpg", "jpeg" -> convertPngToJpg(imageDTO);
+      case "png", "svg" -> render(imageDTO);
       default -> throw new ChemistryException("Unsupported image format: " + outputFormat);
     };
   }
 
-  private byte[] convertPngToJpg(String input) {
+  private byte[] convertPngToJpg(ImageDTO imageDTO) {
     Indigo indigo = new Indigo();
     IndigoRenderer renderer = new IndigoRenderer(indigo);
     try {
       File tmpPng = File.createTempFile("pre", ".png");
-      IndigoObject indigoObject = indigoFacade.load(indigo, input);
+      IndigoObject indigoObject = indigoFacade.load(indigo, imageDTO.input());
       indigo.setOption("render-output-format", "png");
       indigo.setOption("render-margins", 10, 10);
       indigoObject.layout();
@@ -62,20 +65,28 @@ public class IndigoImageGenerator implements ImageGenerator {
     }
   }
 
-  private byte[] render(String input, String outputFormat) {
+  private byte[] render(ImageDTO imageDTO) {
     Indigo indigo = new Indigo();
     IndigoRenderer renderer = new IndigoRenderer(indigo);
     indigo.setOption("ignore-stereochemistry-errors", true);
-    IndigoObject indigoObject = indigoFacade.load(indigo, input);
+    IndigoObject indigoObject = indigoFacade.load(indigo, imageDTO.input());
 
-    indigo.setOption("render-output-format", outputFormat);
+    indigo.setOption("render-output-format", imageDTO.outputFormat());
     indigo.setOption("render-margins", 10, 10);
-    indigo.setOption("render-image-size", "100,100");
+    indigo.setOption("render-image-size", generateImageSize(imageDTO));
     indigoObject.layout();
     try {
       return renderer.renderToBuffer(indigoObject);
     } catch (IndigoException e) {
       throw new ChemistryException("Error rendering image", e);
     }
+  }
+
+  private String generateImageSize(ImageDTO imageDTO) {
+    String imageSizeFormat = "%s,%s";
+    if (StringUtils.isEmpty(imageDTO.width()) || StringUtils.isEmpty(imageDTO.height())) {
+      return String.format(imageSizeFormat, DEFAULT_WIDTH_HEIGHT, DEFAULT_WIDTH_HEIGHT);
+    }
+    return String.format(imageSizeFormat, imageDTO.width(), imageDTO.height());
   }
 }
