@@ -12,8 +12,6 @@ public class IndigoFacade {
 
   public String convert(ConvertDTO convertDTO) {
     Indigo indigo = new Indigo();
-    indigo.setOption("ignore-stereochemistry-errors", true);
-
     IndigoObject indigoObject = load(indigo, convertDTO.input());
 
     return switch (convertDTO.outputFormat()) {
@@ -28,6 +26,7 @@ public class IndigoFacade {
   /* input can be loaded as molecule or reaction but there doesn't seem to be a way to check
   which type it is either before attempting to load*/
   public IndigoObject load(Indigo indigo, String input) {
+    indigo.setOption("ignore-stereochemistry-errors", true);
     if (input == null || input.isEmpty()) {
       throw new ChemistryException("Input is empty");
     }
