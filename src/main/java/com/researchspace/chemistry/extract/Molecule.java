@@ -5,7 +5,7 @@ public class Molecule {
   private final int bondCount;
   private final int formalCharge;
   private final double exactMass;
-  private final String mass;
+  private final double mass;
   private final String formula;
   private final String name;
   private final MoleculeRole role;
@@ -41,7 +41,7 @@ public class Molecule {
     return exactMass;
   }
 
-  public String getMass() {
+  public double getMass() {
     return mass;
   }
 
@@ -58,7 +58,7 @@ public class Molecule {
     private int bondCount;
     private int formalCharge;
     private double exactMass;
-    private String mass;
+    private double mass;
     private String formula;
     private String name;
     private MoleculeRole role;
@@ -83,7 +83,7 @@ public class Molecule {
       return this;
     }
 
-    public Builder mass(String mass) {
+    public Builder mass(double mass) {
       this.mass = mass;
       return this;
     }
