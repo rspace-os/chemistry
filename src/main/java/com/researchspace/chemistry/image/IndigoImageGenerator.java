@@ -68,6 +68,7 @@ public class IndigoImageGenerator implements ImageGenerator {
   private byte[] render(ImageDTO imageDTO) {
     Indigo indigo = new Indigo();
     IndigoRenderer renderer = new IndigoRenderer(indigo);
+    indigo.setOption("ignore-stereochemistry-errors", true);
     IndigoObject indigoObject = indigoFacade.load(indigo, imageDTO.input());
 
     indigo.setOption("render-output-format", imageDTO.outputFormat());
