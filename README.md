@@ -31,9 +31,7 @@ doesn't exist.
 ## Chemistry Libraries
 The Indigo java library and OpenBabel linux library provide the chemistry functionality of this app.
 
-Indigo is used for conversion, extraction, and image generation, and OpenBabel is used for chemical search.
-
-This could be expanded further e.g. by using OpenBabel to attempt to read chemical formats that Indigo cannot.
+Indigo is used for conversion, extraction, and image generation, and OpenBabel is used for conversion and search.
 
 ## Functionality
 The app provides the following functionality:

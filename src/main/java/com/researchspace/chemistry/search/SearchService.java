@@ -1,13 +1,12 @@
 package com.researchspace.chemistry.search;
 
+import com.researchspace.chemistry.util.CommandExecutor;
 import jakarta.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,12 +14,10 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +37,14 @@ public class SearchService {
 
   private File index;
 
-  final ExecutorService executorService = Executors.newSingleThreadExecutor();
+  private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+  private CommandExecutor commandExecutor;
+
+  @Autowired
+  public SearchService(CommandExecutor commandExecutor) {
+    this.commandExecutor = commandExecutor;
+  }
 
   @PostConstruct
   public void initFiles() throws IOException {
@@ -69,7 +73,6 @@ public class SearchService {
     }
   }
 
-  // TODO: sanitise searchTerm
   public List<String> searchNonIndexedFile(String searchTerm)
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
     ProcessBuilder builder = new ProcessBuilder();
@@ -78,7 +81,7 @@ public class SearchService {
     LOGGER.info(
         "Searching without index for {} in file: {}", searchTerm, nonIndexedChemicals.getPath());
     LOGGER.info("FOUND:");
-    return executeCommand(builder);
+    return commandExecutor.executeCommand(builder);
   }
 
   public List<String> searchIndexedFile(String searchTerm)
@@ -86,22 +89,7 @@ public class SearchService {
     ProcessBuilder builder = new ProcessBuilder();
     builder.command("obabel", index.getPath(), "-s" + searchTerm, "-o" + format, "-xt");
     LOGGER.info("Searching with index for {} in file: {}", searchTerm, indexedChemicals.getPath());
-    return executeCommand(builder);
-  }
-
-  private List<String> executeCommand(ProcessBuilder builder)
-      throws IOException, InterruptedException, ExecutionException, TimeoutException {
-    LOGGER.info("Executing command: {}", builder.command());
-    builder.directory(null); // uses current working directory
-    Process process = builder.start();
-    List<String> matches = new ArrayList<>();
-    InputStreamConsumer streamConsumer =
-        new InputStreamConsumer(process.getInputStream(), matches::add);
-    Future<?> future = executorService.submit(streamConsumer);
-    process.waitFor();
-    future.get(10, TimeUnit.SECONDS);
-    LOGGER.info("Found matches: {}", String.join(", ", matches));
-    return matches;
+    return commandExecutor.executeCommand(builder);
   }
 
   // not currently configured
@@ -128,7 +116,7 @@ public class SearchService {
       throws IOException, InterruptedException, ExecutionException, TimeoutException {
     ProcessBuilder builder = new ProcessBuilder();
     builder.command("obabel", indexedChemicals.getPath(), "-O" + index.getPath());
-    executeCommand(builder);
+    commandExecutor.executeCommand(builder);
   }
 
   public List<String> search(String chemicalSearchTerm)
@@ -140,17 +128,5 @@ public class SearchService {
       return hits;
     }
     return Collections.emptyList();
-  }
-
-  /***
-   * Perform an action on each line of an input stream
-   */
-  private record InputStreamConsumer(InputStream inputStream, Consumer<String> consumer)
-      implements Runnable {
-
-    @Override
-    public void run() {
-      new BufferedReader(new InputStreamReader(inputStream)).lines().forEach(consumer);
-    }
   }
 }
