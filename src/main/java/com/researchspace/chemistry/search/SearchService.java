@@ -73,7 +73,6 @@ public class SearchService {
     }
   }
 
-  // TODO: sanitise searchTerm
   public List<String> searchNonIndexedFile(String searchTerm)
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
     ProcessBuilder builder = new ProcessBuilder();
