@@ -6,7 +6,6 @@ import com.epam.indigo.IndigoObject;
 import com.epam.indigo.IndigoRenderer;
 import com.researchspace.chemistry.ChemistryException;
 import com.researchspace.chemistry.util.IndigoFacade;
-
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
