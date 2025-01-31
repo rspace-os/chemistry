@@ -11,7 +11,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import org.springframework.stereotype.Service;
 
-@Service("OpenBabelConvertor")
+@Service
 public class OpenBabelConvertor implements Convertor {
   public static final String OPENBABEL_ERROR_OUTPUT_IDENTIFIER = "Open Babel 3.1.0 -- ";
 

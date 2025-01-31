@@ -5,7 +5,7 @@ import com.researchspace.chemistry.util.IndigoFacade;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 
-@Service("IndigoConvertor")
+@Service
 public class IndigoConvertor implements Convertor {
   private final IndigoFacade indigo;
 

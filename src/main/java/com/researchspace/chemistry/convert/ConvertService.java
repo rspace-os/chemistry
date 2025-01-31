@@ -14,7 +14,7 @@ public class ConvertService {
 
   private final Convertor convertor;
 
-  public ConvertService(@Qualifier("CompositeConvertor") Convertor convertor) {
+  public ConvertService(@Qualifier("compositeConvertor") Convertor convertor) {
     this.convertor = convertor;
   }
 

@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-@Service("CompositeConvertor")
+@Service
 public class CompositeConvertor implements Convertor {
   private final Convertor openBabelConvertor;
 
@@ -14,8 +14,8 @@ public class CompositeConvertor implements Convertor {
 
   @Autowired
   public CompositeConvertor(
-      @Qualifier("OpenBabelConvertor") Convertor openBabel,
-      @Qualifier("IndigoConvertor") Convertor indigo) {
+      @Qualifier("openBabelConvertor") Convertor openBabel,
+      @Qualifier("indigoConvertor") Convertor indigo) {
     this.openBabelConvertor = openBabel;
     this.indigoConvertor = indigo;
   }
