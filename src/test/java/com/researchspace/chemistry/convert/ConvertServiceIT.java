@@ -73,7 +73,7 @@ public class ConvertServiceIT {
         "Can't load input as molecule or reaction. Input: not-smiles", exception.getMessage());
   }
 
-  @Disabled
+  @Disabled("Some files fail to be converted")
   @ParameterizedTest
   @MethodSource("readFilesForCdxmlConversion")
   public void whenValidChemicalFile_thenConversionToCdxmlIsSuccessful(ConvertDTO convertDTO) {
@@ -81,7 +81,7 @@ public class ConvertServiceIT {
     assertTrue(result.contains(VALID_CDXML_START));
   }
 
-  @Disabled
+  @Disabled("Some files fail to be converted")
   @ParameterizedTest
   @MethodSource("readFilesForSmilesConversion")
   public void whenValidChemicalFile_thenConversionToSmilesIsSuccessful(ConvertDTO convertDTO) {
@@ -89,7 +89,7 @@ public class ConvertServiceIT {
     assertTrue(result.contains("C"));
   }
 
-  @Disabled
+  @Disabled("Some files fail to be converted")
   @ParameterizedTest
   @MethodSource("readFilesForKetConversion")
   public void whenValidChemicalFile_thenConversionToKetIsSuccessful(ConvertDTO convertDTO) {
