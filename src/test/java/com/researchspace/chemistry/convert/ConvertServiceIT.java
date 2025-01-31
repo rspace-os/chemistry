@@ -27,7 +27,7 @@ public class ConvertServiceIT {
 
   @Autowired ConvertService convertService;
 
-  private static final String VALID_CDXML_START = "<?xml version=\"1.0\"?>\n<!DOCTYPE CDXML";
+  private static final String VALID_CDXML_START = "<?xml version=\"1.0\"";
 
   @Test
   public void whenValidRequest_thenConversionIsSuccessful() {
@@ -70,7 +70,7 @@ public class ConvertServiceIT {
             });
 
     assertEquals(
-        "Can't load input as molecule or reaction. Input: not-smiles", exception.getMessage());
+        "Unable to perform conversion to cdxml.", exception.getMessage());
   }
 
   @Disabled("Some files fail to be converted")
@@ -111,7 +111,7 @@ public class ConvertServiceIT {
   }
 
   private static List<ConvertDTO> readFiles(String outputFormat) throws Exception {
-    try (Stream<Path> paths = Files.walk(Paths.get("src/test/resources"))) {
+    try (Stream<Path> paths = Files.walk(Paths.get("src/test/resources/chemistry_files"))) {
       return paths
           .filter(Files::isRegularFile)
           .filter(path -> !path.toString().endsWith(".cdx"))

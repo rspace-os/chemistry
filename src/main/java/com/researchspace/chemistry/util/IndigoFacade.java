@@ -29,7 +29,7 @@ public class IndigoFacade {
         return Optional.empty();
       }
       return Optional.of(converted);
-    } catch (IndigoException e) {
+    } catch (ChemistryException e) {
       return Optional.empty();
     }
   }
