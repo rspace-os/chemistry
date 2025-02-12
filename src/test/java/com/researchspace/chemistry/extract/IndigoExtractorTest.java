@@ -1,7 +1,9 @@
 package com.researchspace.chemistry.extract;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.researchspace.chemistry.ChemistryException;
 import org.junit.jupiter.api.Test;
@@ -22,6 +24,18 @@ public class IndigoExtractorTest {
     ExtractionResult result = indigoExtractor.extract(chemical);
     assertEquals(2, result.getMolecules().get(0).getAtomCount());
     assertEquals(1, result.getMolecules().get(0).getBondCount());
+    assertEquals("C2 H6", result.getMolecules().get(0).getFormula());
+    assertEquals(30.05, result.getMolecules().get(0).getExactMass());
+    assertEquals(30.07, result.getMolecules().get(0).getMass());
+    assertFalse(result.isReaction());
+  }
+
+  @Test
+  public void whenChemicalElementIsAReaction_thenOnlyFormulaIsExtracted() {
+    String reaction = "(C(=O)O).(OCC)>>(C(=O)OCC).(O)";
+    ExtractionResult result = indigoExtractor.extract(reaction);
+    assertTrue(result.isReaction());
+    assertTrue(result.getMolecules().isEmpty());
   }
 
   @ParameterizedTest

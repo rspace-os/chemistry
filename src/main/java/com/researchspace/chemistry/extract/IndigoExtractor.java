@@ -25,32 +25,46 @@ public class IndigoExtractor implements Extractor {
   }
 
   private ExtractionResult getExtractionResult(IndigoObject inputChemical) {
-    List<Molecule> molecules = new ArrayList<>();
-
-    for (IndigoObject component : inputChemical.iterateComponents()) {
-      molecules.add(makeMolecule(component));
+    boolean isReaction = tryStringOperation(inputChemical::dbgInternalType).contains("reaction");
+    String formula = tryStringOperation(inputChemical::grossFormula);
+    ExtractionResult result = new ExtractionResult();
+    result.setFormula(formula);
+    result.setReaction(isReaction);
+    // for reactions, only the formula is displayed
+    if(isReaction) {
+      return result;
     }
 
-    ExtractionResult result = new ExtractionResult();
+    List<Molecule> molecules = new ArrayList<>();
+    int atomCount = tryIntOperation(inputChemical::countAtoms);
+    int bondCount = tryIntOperation(inputChemical::countBonds);
+    double mass = tryDoubleOperation(inputChemical::mostAbundantMass);
+    double molWeight = tryDoubleOperation(inputChemical::molecularWeight);
+
+
+    molecules.add(new Molecule.Builder()
+            .atomCount(atomCount)
+            .bondCount(bondCount)
+            .exactMass(mass)
+            .formula(formula)
+            .mass(molWeight)
+            .role(MoleculeRole.MOLECULE)
+            .build());
+
     result.setMoleculeInfo(molecules);
     result.setMolecules(molecules);
     return result;
   }
 
-  private Molecule makeMolecule(IndigoObject inputChemical) {
-    int atomCount = tryIndigoIntOperation(inputChemical::countAtoms);
-    int bondCount = tryIndigoIntOperation(inputChemical::countBonds);
-    double mass = tryIndigoDoubleOperation(inputChemical::mostAbundantMass);
-
-    return new Molecule.Builder()
-        .atomCount(atomCount)
-        .bondCount(bondCount)
-        .exactMass(mass)
-        .role(MoleculeRole.MOLECULE)
-        .build();
+  private String tryStringOperation(Supplier<String> indigoOperation) {
+    try {
+      return indigoOperation.get();
+    } catch (IndigoException e) {
+      return "";
+    }
   }
 
-  private int tryIndigoIntOperation(Supplier<Integer> indigoOperation) {
+  private int tryIntOperation(Supplier<Integer> indigoOperation) {
     try {
       return indigoOperation.get();
     } catch (IndigoException e) {
@@ -58,9 +72,11 @@ public class IndigoExtractor implements Extractor {
     }
   }
 
-  private double tryIndigoDoubleOperation(Supplier<Double> indigoOperation) {
+  private double tryDoubleOperation(Supplier<Double> indigoOperation) {
     try {
-      return indigoOperation.get();
+      double result = indigoOperation.get();
+      String rounded = String.format("%.2f", result);
+      return Double.parseDouble(rounded);
     } catch (IndigoException e) {
       return 0;
     }
