@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -69,8 +70,7 @@ public class ConvertServiceIT {
               convertService.convert(convertDTO);
             });
 
-    assertEquals(
-        "Unable to perform conversion to cdxml.", exception.getMessage());
+    assertEquals("Unable to perform conversion to cdxml.", exception.getMessage());
   }
 
   @Disabled("Some files fail to be converted")
@@ -114,12 +114,13 @@ public class ConvertServiceIT {
     try (Stream<Path> paths = Files.walk(Paths.get("src/test/resources/chemistry_files"))) {
       return paths
           .filter(Files::isRegularFile)
-          .filter(path -> !path.toString().endsWith(".cdx"))
           .map(
               path -> {
                 try {
                   return new ConvertDTO(
-                      Files.readString(path),
+                      path.toString().endsWith(".cdx")
+                          ? Base64.getEncoder().encodeToString(Files.readAllBytes(path))
+                          : Files.readString(path),
                       FilenameUtils.getExtension(path.toString()),
                       outputFormat);
                 } catch (IOException e) {

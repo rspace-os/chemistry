@@ -6,10 +6,13 @@ import com.epam.indigo.IndigoObject;
 import com.researchspace.chemistry.ChemistryException;
 import com.researchspace.chemistry.convert.ConvertDTO;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class IndigoFacade {
+  private static final Logger logger = LoggerFactory.getLogger(IndigoFacade.class);
 
   public Optional<String> convert(ConvertDTO convertDTO) {
     Indigo indigo = new Indigo();
@@ -20,16 +23,19 @@ public class IndigoFacade {
       indigoObject = load(indigo, convertDTO.input());
       String converted =
           switch (convertDTO.outputFormat()) {
+            case "cdx" -> indigoObject.b64cdx();
             case "cdxml" -> indigoObject.cdxml();
             case "smiles" -> indigoObject.smiles();
             case "ket" -> indigoObject.json();
+            case "mol" -> indigoObject.molfile();
             default -> "";
           };
       if (converted.isEmpty()) {
         return Optional.empty();
       }
       return Optional.of(converted);
-    } catch (ChemistryException e) {
+    } catch (ChemistryException | IndigoException e) {
+      logger.warn("Unable to convert with Indigo. {}", e.getMessage());
       return Optional.empty();
     }
   }

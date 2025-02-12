@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import org.apache.commons.codec.binary.Base64;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -25,7 +26,8 @@ public class OpenBabelConvertor implements Convertor {
   public Optional<String> convert(ConvertDTO convertDTO) {
     try {
       File tempFile = File.createTempFile("temp-", ".tmp");
-      Files.write(tempFile.toPath(), convertDTO.input().getBytes());
+      byte[] chemBytes = getChemBytes(convertDTO.input());
+      Files.write(tempFile.toPath(), chemBytes);
       ProcessBuilder builder = new ProcessBuilder();
       builder.command(
           "obabel",
@@ -41,5 +43,17 @@ public class OpenBabelConvertor implements Convertor {
     } catch (IOException | ExecutionException | InterruptedException | TimeoutException e) {
       throw new ChemistryException("Problem while converting.", e);
     }
+  }
+
+  private byte[] getChemBytes(String input) {
+    if (Base64.isBase64(input)) {
+      try {
+        return java.util.Base64.getDecoder().decode(input.getBytes());
+      } catch (IllegalArgumentException e) {
+        // unencoded inputs such as smiles can be incorrectly identified as base64
+        return input.getBytes();
+      }
+    }
+    return input.getBytes();
   }
 }
