@@ -1,5 +1,7 @@
 package com.researchspace.chemistry.search;
 
+import com.researchspace.chemistry.convert.ConvertDTO;
+import com.researchspace.chemistry.convert.ConvertService;
 import com.researchspace.chemistry.util.CommandExecutor;
 import jakarta.annotation.PostConstruct;
 import java.io.BufferedReader;
@@ -39,11 +41,14 @@ public class SearchService {
 
   private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-  private CommandExecutor commandExecutor;
+  private final CommandExecutor commandExecutor;
+
+  private final ConvertService convertService;
 
   @Autowired
-  public SearchService(CommandExecutor commandExecutor) {
+  public SearchService(CommandExecutor commandExecutor, ConvertService convertService) {
     this.commandExecutor = commandExecutor;
+    this.convertService = convertService;
   }
 
   @PostConstruct
@@ -63,11 +68,12 @@ public class SearchService {
   }
 
   public void saveChemicalToFile(String chemical, String chemicalId) throws IOException {
+    String smiles = convertService.convert(new ConvertDTO(chemical, "smiles"));
     FileWriter fileWriter = new FileWriter(nonIndexedChemicals, true);
     try (PrintWriter printWriter = new PrintWriter(fileWriter)) {
-      printWriter.println(chemical + " " + chemicalId);
+      printWriter.println(smiles + " " + chemicalId);
       printWriter.flush();
-      LOGGER.info("Wrote chemical {} to file.", chemical);
+      LOGGER.info("Wrote smiles {} to search file.", smiles);
     } catch (Exception e) {
       LOGGER.error("Error while saving chemical {}", chemical, e);
     }
