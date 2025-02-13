@@ -20,9 +20,9 @@ public class ConvertService {
 
   public String convert(ConvertDTO convertDTO) {
     LOGGER.info(
-        "Converting format: {} with input: {} to output format: {}",
+        "Converting format: {} with input: {}...(truncated) to output format: {}",
         convertDTO.inputFormat(),
-        convertDTO.input(),
+        convertDTO.input().substring(0, Math.min(convertDTO.input().length(), 50)),
         convertDTO.outputFormat());
     Optional<String> converted = convertor.convert(convertDTO);
     return converted.orElseThrow(

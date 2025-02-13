@@ -67,9 +67,9 @@ public class SearchService {
     try (PrintWriter printWriter = new PrintWriter(fileWriter)) {
       printWriter.println(chemical + " " + chemicalId);
       printWriter.flush();
-      LOGGER.info("Wrote chemical {} to file.", chemical);
+      LOGGER.info("Wrote chemical {}...(truncated) to file.", chemical.substring(0, Math.min(chemical.length(), 50)));
     } catch (Exception e) {
-      LOGGER.error("Error while saving chemical {}", chemical, e);
+      LOGGER.error("Error while saving chemical {}...(truncated)", chemical.substring(0, Math.min(chemical.length(), 50)), e);
     }
   }
 

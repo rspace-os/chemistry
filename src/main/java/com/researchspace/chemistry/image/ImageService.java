@@ -15,7 +15,7 @@ public class ImageService {
   }
 
   public byte[] exportImage(ImageDTO imageDTO) {
-    LOGGER.info("Exporting image to: {}", imageDTO.outputFormat());
+    LOGGER.info("Exporting image to format: {}", imageDTO.outputFormat());
     return imageGenerator.generateImage(imageDTO);
   }
 }

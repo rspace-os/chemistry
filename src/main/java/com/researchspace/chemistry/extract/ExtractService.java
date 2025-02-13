@@ -17,7 +17,7 @@ public class ExtractService {
   }
 
   public ExtractionResult extract(ExtractionRequest requestDTO) {
-    LOGGER.info("Extracting from input: {}", requestDTO.input());
+    LOGGER.info("Extracting metadata from input: {}...(truncated)", requestDTO.input().substring(0, Math.min(requestDTO.input().length(), 50)));
     return extractor.extract(requestDTO.input());
   }
 }
