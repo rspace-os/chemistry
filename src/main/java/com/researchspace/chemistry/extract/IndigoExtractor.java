@@ -31,7 +31,7 @@ public class IndigoExtractor implements Extractor {
     result.setFormula(formula);
     result.setReaction(isReaction);
     // for reactions, only the formula is displayed
-    if(isReaction) {
+    if (isReaction) {
       return result;
     }
 
@@ -41,8 +41,8 @@ public class IndigoExtractor implements Extractor {
     double mass = tryDoubleOperation(inputChemical::mostAbundantMass);
     double molWeight = tryDoubleOperation(inputChemical::molecularWeight);
 
-
-    molecules.add(new Molecule.Builder()
+    molecules.add(
+        new Molecule.Builder()
             .atomCount(atomCount)
             .bondCount(bondCount)
             .exactMass(mass)

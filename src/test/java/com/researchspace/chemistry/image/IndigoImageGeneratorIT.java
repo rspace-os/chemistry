@@ -3,7 +3,7 @@ package com.researchspace.chemistry.image;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.researchspace.chemistry.convert.ChemistryException;
+import com.researchspace.chemistry.ChemistryException;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import javax.imageio.ImageIO;
