@@ -18,7 +18,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -134,10 +133,8 @@ public class SearchService {
       hits.addAll(searchIndexedFile(chemicalSearchTerm));
       hits.addAll(searchNonIndexedFile(chemicalSearchTerm));
       return hits.stream()
-              .map(input -> input.contains(" ")
-                      ? input.substring(input.lastIndexOf(" ") + 1)
-                      : input)
-              .collect(Collectors.toList());
+          .map(input -> input.contains(" ") ? input.substring(input.lastIndexOf(" ") + 1) : input)
+          .collect(Collectors.toList());
     }
     return Collections.emptyList();
   }
