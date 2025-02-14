@@ -1,5 +1,7 @@
 package com.researchspace.chemistry.search;
 
+import com.researchspace.chemistry.convert.ConvertDTO;
+import com.researchspace.chemistry.convert.ConvertService;
 import com.researchspace.chemistry.util.CommandExecutor;
 import jakarta.annotation.PostConstruct;
 import java.io.BufferedReader;
@@ -15,6 +17,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,11 +43,14 @@ public class SearchService {
 
   private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-  private CommandExecutor commandExecutor;
+  private final CommandExecutor commandExecutor;
+
+  private final ConvertService convertService;
 
   @Autowired
-  public SearchService(CommandExecutor commandExecutor) {
+  public SearchService(CommandExecutor commandExecutor, ConvertService convertService) {
     this.commandExecutor = commandExecutor;
+    this.convertService = convertService;
   }
 
   @PostConstruct
@@ -63,11 +70,12 @@ public class SearchService {
   }
 
   public void saveChemicalToFile(String chemical, String chemicalId) throws IOException {
+    String smiles = convertService.convert(new ConvertDTO(chemical, "smiles"));
     FileWriter fileWriter = new FileWriter(nonIndexedChemicals, true);
     try (PrintWriter printWriter = new PrintWriter(fileWriter)) {
-      printWriter.println(chemical + " " + chemicalId);
+      printWriter.println(smiles + " " + chemicalId);
       printWriter.flush();
-      LOGGER.info("Wrote chemical {} to file.", chemical);
+      LOGGER.info("Wrote smiles {} to search file.", smiles);
     } catch (Exception e) {
       LOGGER.error("Error while saving chemical {}", chemical, e);
     }
@@ -125,7 +133,11 @@ public class SearchService {
       List<String> hits = new ArrayList<>();
       hits.addAll(searchIndexedFile(chemicalSearchTerm));
       hits.addAll(searchNonIndexedFile(chemicalSearchTerm));
-      return hits;
+      return hits.stream()
+              .map(input -> input.contains(" ")
+                      ? input.substring(input.lastIndexOf(" ") + 1)
+                      : input)
+              .collect(Collectors.toList());
     }
     return Collections.emptyList();
   }
