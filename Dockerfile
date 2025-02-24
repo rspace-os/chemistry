@@ -10,4 +10,5 @@ RUN apt-get update \
 ENV PATH=$OPENBABEL_HOME/bin:$PATH
 COPY --from=builder /home/app/chemistry/target/chemistry.jar /home/app/chemistry.jar
 EXPOSE 8090
+WORKDIR /home/app/chemistry
 ENTRYPOINT ["java", "-jar", "/home/app/chemistry.jar"]
