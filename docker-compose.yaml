@@ -11,6 +11,8 @@ services:
           - type: volume
             source: chemistry-files
             target: /home/app
-
+        environment:
+          - OPENBABEL_HOME/bin:$PATH
+        working_dir: /home/app/chemistry
 volumes:
   chemistry-files:
