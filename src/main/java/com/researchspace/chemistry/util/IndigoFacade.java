@@ -25,7 +25,7 @@ public class IndigoFacade {
           switch (convertDTO.outputFormat()) {
             case "cdx" -> indigoObject.b64cdx();
             case "cdxml" -> indigoObject.cdxml();
-            case "smiles" -> indigoObject.smiles();
+            case "smiles", "smi" -> indigoObject.smiles();
             case "ket" -> indigoObject.json();
             case "mol" -> indigoObject.molfile();
             default -> "";
