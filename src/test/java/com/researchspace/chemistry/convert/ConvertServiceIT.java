@@ -40,7 +40,7 @@ public class ConvertServiceIT {
   @ParameterizedTest
   @ValueSource(strings = {"cdxml", "smiles", "ket"})
   public void whenSupportedFormat_thenConversionIsSuccessful(String outputFormat) {
-    ConvertDTO convertDTO = new ConvertDTO("CCC.CCC", outputFormat);
+    ConvertDTO convertDTO = new ConvertDTO("CCC.CCC", "smiles", outputFormat);
     String result = convertService.convert(convertDTO);
     assertFalse(result.isEmpty());
   }

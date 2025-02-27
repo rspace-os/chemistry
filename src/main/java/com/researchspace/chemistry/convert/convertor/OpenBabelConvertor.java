@@ -46,6 +46,9 @@ public class OpenBabelConvertor implements Convertor {
   }
 
   private byte[] getChemBytes(String input) {
+    if (input.length() % 4 != 0) {
+      return input.getBytes();
+    }
     if (Base64.isBase64(input)) {
       try {
         return java.util.Base64.getDecoder().decode(input.getBytes());
