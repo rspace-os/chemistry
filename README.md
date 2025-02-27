@@ -18,14 +18,17 @@ Run all tests: `mvn clean test`
 ## Run
 #### Docker (docker-compose.yaml - production ready)
 
-Create a new directory for this docker container (Eg. /home/user/rspace-chemistry-docker) and have the docker-compose.yaml file (from this repo) and the chemistry.jar file (from this release section) in the root of that directory. Once you have these files you can start the container.
+Create a new directory for this docker container (Eg. /home/user/rspace-chemistry-docker) and have the docker-compose.yaml file (from this repo) and the chemistry.jar file (from the release section) in the root of that directory. Once you have these files you can start the container.
 
-You can start the container with: docker compose up -d
-You can stop the container with: docker compose down
-You can view the container logs with: docker logs <container name>
-You can get the container name with: docker ps
+
+- You can start the container with: docker compose up -d
+- You can stop the container with: docker compose down
+- You can view the container logs with: docker logs <container name>
+- You can get the container name with: docker ps
+
 
 The container stores some data that needs to be kept on container restarts, therefore there is a docker volume mounted to keep this data persistent.
+
 
 As the container is designed for production use, the 8090 port is binded only to localhost
 
