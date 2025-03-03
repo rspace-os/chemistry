@@ -18,6 +18,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +77,7 @@ public class SearchService {
       printWriter.flush();
       LOGGER.info("Wrote smiles {} to search file.", smiles);
     } catch (Exception e) {
-      String chemicalPreview = chemical.length() > 50 ? chemical.substring(0, 50) : chemical;
+      String chemicalPreview = StringUtils.abbreviate(chemical, 50);
       LOGGER.error("Error while saving chemical {}", chemicalPreview, e);
     }
   }
