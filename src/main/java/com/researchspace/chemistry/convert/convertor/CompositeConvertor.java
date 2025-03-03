@@ -26,7 +26,7 @@ public class CompositeConvertor implements Convertor {
     if (canBeConvertedByOpenBabel(convertDTO.inputFormat())) {
       converted = openBabelConvertor.convert(convertDTO);
     }
-    if(converted.isEmpty()){
+    if (converted.isEmpty()) {
       converted = indigoConvertor.convert(convertDTO);
     }
     return converted;

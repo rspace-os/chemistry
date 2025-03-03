@@ -45,26 +45,26 @@ public class CompositeConvertorTest {
   }
 
   @Test
-  public void whenInputFormatSupplied_tryIndigoFirst() {
+  public void whenInputFormatSupplied_tryOpenBabelFirst() {
     ConvertDTO input = new ConvertDTO("aChemical", "anInputFormat", "anOutputFormat");
     String expected = "C";
 
-    when(indigoConvertor.convert(any())).thenReturn(Optional.of(expected));
+    when(openBabelConvertor.convert(any())).thenReturn(Optional.of(expected));
 
     String actual = compositeConvertor.convert(input).get();
 
     assertEquals(expected, actual);
-    Mockito.verify(indigoConvertor, times(1)).convert(any());
-    Mockito.verify(openBabelConvertor, never()).convert(any());
+    Mockito.verify(openBabelConvertor, times(1)).convert(any());
+    Mockito.verify(indigoConvertor, never()).convert(any());
   }
 
   @Test
-  public void whenNotConvertedByIndigo_thenConvertWithOpenBabel() {
+  public void whenNotConvertedByOpenBabel_thenConvertWithIndigo() {
     ConvertDTO input = new ConvertDTO("aChemical", "anInputFormat", "anOutputFormat");
     String expected = "C";
 
-    when(indigoConvertor.convert(any())).thenReturn(Optional.empty());
-    when(openBabelConvertor.convert(any())).thenReturn(Optional.of(expected));
+    when(openBabelConvertor.convert(any())).thenReturn(Optional.empty());
+    when(indigoConvertor.convert(any())).thenReturn(Optional.of(expected));
 
     String actual = compositeConvertor.convert(input).get();
 

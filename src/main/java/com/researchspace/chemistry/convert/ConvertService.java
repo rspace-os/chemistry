@@ -19,7 +19,8 @@ public class ConvertService {
   }
 
   public String convert(ConvertDTO convertDTO) {
-    String inputPreview = convertDTO.input().length() > 50 ? convertDTO.input().substring(0, 50) : convertDTO.input();
+    String inputPreview =
+        convertDTO.input().length() > 50 ? convertDTO.input().substring(0, 50) : convertDTO.input();
     LOGGER.info(
         "Converting format: {} with input: {} to output format: {}",
         convertDTO.inputFormat(),

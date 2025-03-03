@@ -73,6 +73,14 @@ public class ConvertServiceIT {
     assertEquals("Unable to perform conversion to cdxml.", exception.getMessage());
   }
 
+  @ParameterizedTest
+  @MethodSource("readFilesForSmilesConversion")
+  public void whenValidChemicalFile_thenConversionToSmilesIsSuccessful(Conversion conversion) {
+    System.out.println("converting file: " + conversion.fileName);
+    String result = convertService.convert(conversion.convertDTO);
+    assertTrue(result.contains("C"));
+  }
+
   @Disabled("Some files fail to be converted")
   @ParameterizedTest
   @MethodSource("readFilesForCdxmlConversion")
@@ -80,15 +88,6 @@ public class ConvertServiceIT {
     System.out.println("converting file: " + conversion.fileName);
     String result = convertService.convert(conversion.convertDTO);
     assertTrue(result.contains(VALID_CDXML_START));
-  }
-
-  @Disabled("Some files fail to be converted")
-  @ParameterizedTest
-  @MethodSource("readFilesForSmilesConversion")
-  public void whenValidChemicalFile_thenConversionToSmilesIsSuccessful(Conversion conversion) {
-    System.out.println("converting file: " + conversion.fileName);
-    String result = convertService.convert(conversion.convertDTO);
-    assertTrue(result.contains("C"));
   }
 
   @Disabled("Some files fail to be converted")
@@ -120,12 +119,14 @@ public class ConvertServiceIT {
           .map(
               path -> {
                 try {
-                  return new Conversion(path.getFileName().toString(), new ConvertDTO(
-                      path.toString().endsWith(".cdx")
-                          ? Base64.getEncoder().encodeToString(Files.readAllBytes(path))
-                          : Files.readString(path),
-                      FilenameUtils.getExtension(path.toString()),
-                      outputFormat));
+                  return new Conversion(
+                      path.getFileName().toString(),
+                      new ConvertDTO(
+                          path.toString().endsWith(".cdx")
+                              ? Base64.getEncoder().encodeToString(Files.readAllBytes(path))
+                              : Files.readString(path),
+                          FilenameUtils.getExtension(path.toString()),
+                          outputFormat));
                 } catch (IOException e) {
                   throw new RuntimeException("Error reading file: " + path, e);
                 }
@@ -134,7 +135,7 @@ public class ConvertServiceIT {
     }
   }
 
-  static class Conversion{
+  static class Conversion {
     String fileName;
     ConvertDTO convertDTO;
 
