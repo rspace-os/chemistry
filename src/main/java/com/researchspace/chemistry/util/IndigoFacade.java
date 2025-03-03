@@ -15,6 +15,7 @@ public class IndigoFacade {
   private static final Logger logger = LoggerFactory.getLogger(IndigoFacade.class);
 
   public Optional<String> convert(ConvertDTO convertDTO) {
+    logger.info("Attempting conversion using Indigo.");
     Indigo indigo = new Indigo();
     indigo.setOption("ignore-stereochemistry-errors", true);
 

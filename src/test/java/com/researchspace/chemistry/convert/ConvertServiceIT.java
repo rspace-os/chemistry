@@ -73,61 +73,75 @@ public class ConvertServiceIT {
     assertEquals("Unable to perform conversion to cdxml.", exception.getMessage());
   }
 
-  @Disabled("Some files fail to be converted")
-  @ParameterizedTest
-  @MethodSource("readFilesForCdxmlConversion")
-  public void whenValidChemicalFile_thenConversionToCdxmlIsSuccessful(ConvertDTO convertDTO) {
-    String result = convertService.convert(convertDTO);
-    assertTrue(result.contains(VALID_CDXML_START));
-  }
-
-  @Disabled("Some files fail to be converted")
   @ParameterizedTest
   @MethodSource("readFilesForSmilesConversion")
-  public void whenValidChemicalFile_thenConversionToSmilesIsSuccessful(ConvertDTO convertDTO) {
-    String result = convertService.convert(convertDTO);
+  public void whenValidChemicalFile_thenConversionToSmilesIsSuccessful(Conversion conversion) {
+    System.out.println("converting file: " + conversion.fileName);
+    String result = convertService.convert(conversion.convertDTO);
     assertTrue(result.contains("C"));
   }
 
   @Disabled("Some files fail to be converted")
   @ParameterizedTest
+  @MethodSource("readFilesForCdxmlConversion")
+  public void whenValidChemicalFile_thenConversionToCdxmlIsSuccessful(Conversion conversion) {
+    System.out.println("converting file: " + conversion.fileName);
+    String result = convertService.convert(conversion.convertDTO);
+    assertTrue(result.contains(VALID_CDXML_START));
+  }
+
+  @Disabled("Some files fail to be converted")
+  @ParameterizedTest
   @MethodSource("readFilesForKetConversion")
-  public void whenValidChemicalFile_thenConversionToKetIsSuccessful(ConvertDTO convertDTO) {
+  public void whenValidChemicalFile_thenConversionToKetIsSuccessful(Conversion conversion) {
+    System.out.println("converting file: " + conversion.fileName);
     String validKetcherStart = "\"root\":{\"nodes";
-    String result = convertService.convert(convertDTO);
+    String result = convertService.convert(conversion.convertDTO);
     assertTrue(result.contains(validKetcherStart));
   }
 
-  private static List<ConvertDTO> readFilesForCdxmlConversion() throws Exception {
+  private static List<Conversion> readFilesForCdxmlConversion() throws Exception {
     return readFiles("cdxml");
   }
 
-  private static List<ConvertDTO> readFilesForSmilesConversion() throws Exception {
+  private static List<Conversion> readFilesForSmilesConversion() throws Exception {
     return readFiles("smi");
   }
 
-  private static List<ConvertDTO> readFilesForKetConversion() throws Exception {
+  private static List<Conversion> readFilesForKetConversion() throws Exception {
     return readFiles("ket");
   }
 
-  private static List<ConvertDTO> readFiles(String outputFormat) throws Exception {
-    try (Stream<Path> paths = Files.walk(Paths.get("src/test/resources/chemistry_files"))) {
+  private static List<Conversion> readFiles(String outputFormat) throws Exception {
+    try (Stream<Path> paths = Files.walk(Paths.get("src/test/resources/chemistry_file_examples"))) {
       return paths
           .filter(Files::isRegularFile)
           .map(
               path -> {
                 try {
-                  return new ConvertDTO(
-                      path.toString().endsWith(".cdx")
-                          ? Base64.getEncoder().encodeToString(Files.readAllBytes(path))
-                          : Files.readString(path),
-                      FilenameUtils.getExtension(path.toString()),
-                      outputFormat);
+                  return new Conversion(
+                      path.getFileName().toString(),
+                      new ConvertDTO(
+                          path.toString().endsWith(".cdx")
+                              ? Base64.getEncoder().encodeToString(Files.readAllBytes(path))
+                              : Files.readString(path),
+                          FilenameUtils.getExtension(path.toString()),
+                          outputFormat));
                 } catch (IOException e) {
                   throw new RuntimeException("Error reading file: " + path, e);
                 }
               })
           .collect(Collectors.toList());
+    }
+  }
+
+  static class Conversion {
+    String fileName;
+    ConvertDTO convertDTO;
+
+    public Conversion(String fileName, ConvertDTO convertDTO) {
+      this.fileName = fileName;
+      this.convertDTO = convertDTO;
     }
   }
 }

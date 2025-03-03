@@ -13,7 +13,9 @@ If running via maven, OpenBabel also needs to be installed on the system.
 [OpenBabel installation](https://openbabel.org/docs/Installation/install.html)
 
 ## Test
-Run all tests: `mvn clean test`
+Run all unit and integration tests: `mvn clean verify`
+
+Run all unit tests: `mvn clean test`
 
 ## Run
 #### Docker (docker-compose.yaml - production ready)

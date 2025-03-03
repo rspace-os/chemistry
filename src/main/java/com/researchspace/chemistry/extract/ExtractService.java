@@ -1,5 +1,6 @@
 package com.researchspace.chemistry.extract;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,9 @@ public class ExtractService {
   }
 
   public ExtractionResult extract(ExtractionRequest requestDTO) {
-    LOGGER.info("Extracting from input: {}", requestDTO.input());
+    String inputPreview = StringUtils.abbreviate(requestDTO.input(), 50);
+
+    LOGGER.info("Extracting from input: {}", inputPreview);
     return extractor.extract(requestDTO.input());
   }
 }
