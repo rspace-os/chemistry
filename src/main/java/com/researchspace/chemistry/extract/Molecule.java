@@ -60,7 +60,7 @@ public class Molecule {
     private double exactMass;
     private double mass;
     private String formula;
-    private String name;
+    private String name = "";
     private MoleculeRole role;
 
     public Builder atomCount(int atomCount) {
