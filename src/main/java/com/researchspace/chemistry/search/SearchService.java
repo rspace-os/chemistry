@@ -76,7 +76,8 @@ public class SearchService {
       printWriter.flush();
       LOGGER.info("Wrote smiles {} to search file.", smiles);
     } catch (Exception e) {
-      LOGGER.error("Error while saving chemical {}", chemical, e);
+      String chemicalPreview = chemical.length() > 50 ? chemical.substring(0, 50) : chemical;
+      LOGGER.error("Error while saving chemical {}", chemicalPreview, e);
     }
   }
 

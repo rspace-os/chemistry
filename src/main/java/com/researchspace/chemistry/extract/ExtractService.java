@@ -17,7 +17,9 @@ public class ExtractService {
   }
 
   public ExtractionResult extract(ExtractionRequest requestDTO) {
-    LOGGER.info("Extracting from input: {}", requestDTO.input());
+    String inputPreview = requestDTO.input().length() > 50 ? requestDTO.input().substring(0, 50) : requestDTO.input();
+
+    LOGGER.info("Extracting from input: {}",inputPreview);
     return extractor.extract(requestDTO.input());
   }
 }
