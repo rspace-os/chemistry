@@ -34,7 +34,7 @@ public class CommandExecutor {
         new InputStreamConsumer(process.getInputStream(), output::add);
     Future<?> future = executorService.submit(streamConsumer);
     process.waitFor();
-    future.get(10, TimeUnit.SECONDS);
+    future.get(30, TimeUnit.SECONDS);
     LOGGER.info("Found output: {}", String.join(", ", output));
     return output;
   }
