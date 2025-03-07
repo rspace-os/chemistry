@@ -11,7 +11,7 @@
   </parent>
   <groupId>com.github.rspace-os</groupId>
   <artifactId>chemistry</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
   <name>chemistry</name>
   <description>chemistry</description>
   <url/>
@@ -33,13 +33,13 @@
     <dependency>
       <groupId>com.epam.indigo</groupId>
       <artifactId>indigo</artifactId>
-      <version>1.23.0-dev.3</version>
+      <version>1.30.0</version>
     </dependency>
 
     <dependency>
       <groupId>com.epam.indigo</groupId>
       <artifactId>indigo-renderer</artifactId>
-      <version>1.23.0-dev.3</version>
+      <version>1.30.0</version>
     </dependency>
 
     <dependency>
