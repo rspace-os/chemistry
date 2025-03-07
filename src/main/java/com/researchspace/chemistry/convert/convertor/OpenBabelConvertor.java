@@ -9,12 +9,15 @@ import java.nio.file.Files;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.stereotype.Service;
 
 @Service
 public class OpenBabelConvertor implements Convertor {
-  public static final String OPENBABEL_ERROR_OUTPUT_IDENTIFIER = "Open Babel 3.1.0 -- ";
+  String regex = "Open Babel 3.\\d+.\\d+ --";
+  Pattern pattern = Pattern.compile(regex);
 
   private final CommandExecutor commandExecutor;
 
@@ -36,13 +39,18 @@ public class OpenBabelConvertor implements Convertor {
           "-o" + convertDTO.outputFormat());
       String output = String.join("\n", commandExecutor.executeCommand(builder));
       Files.delete(tempFile.toPath());
-      if (output.isEmpty() || output.startsWith(OPENBABEL_ERROR_OUTPUT_IDENTIFIER)) {
+      if (output.isEmpty() || isFailedConversionOutput(output)) {
         return Optional.empty();
       }
       return Optional.of(output);
     } catch (IOException | ExecutionException | InterruptedException | TimeoutException e) {
       throw new ChemistryException("Problem while converting.", e);
     }
+  }
+
+  private boolean isFailedConversionOutput(String output) {
+    Matcher matcher = pattern.matcher(output);
+    return matcher.find();
   }
 
   private byte[] getChemBytes(String input) {

@@ -1,6 +1,5 @@
 package com.researchspace.chemistry.convert.convertor;
 
-import static com.researchspace.chemistry.convert.convertor.OpenBabelConvertor.OPENBABEL_ERROR_OUTPUT_IDENTIFIER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -15,6 +14,8 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -56,17 +57,6 @@ class OpenBabelConvertorTest {
   }
 
   @Test
-  public void whenErrorOutputFromOpenBabel_thenReturnEmpty() throws Exception {
-    when(commandExecutor.executeCommand(any()))
-        .thenReturn(List.of(OPENBABEL_ERROR_OUTPUT_IDENTIFIER));
-
-    String expected = "C\nCC";
-    Optional<String> actual = convertor.convert(new ConvertDTO("someInput", "someFormat"));
-
-    assertEquals(Optional.empty(), actual);
-  }
-
-  @Test
   public void whenExceptionThrownFromOpenBabel_thenWrapWithChemistryException() throws Exception {
     String ioExceptionMessage = "Problem accessing OpenBabel";
     when(commandExecutor.executeCommand(any())).thenThrow(new IOException(ioExceptionMessage));
@@ -81,5 +71,21 @@ class OpenBabelConvertorTest {
 
     assertEquals("Problem while converting.", exception.getMessage());
     assertEquals(ioExceptionMessage, exception.getCause().getMessage());
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "Open Babel 3.1.0 --",
+        "Open Babel 3.1.1 --",
+        "Open Babel 3.1.15 --",
+        "Open Babel 3.105.7 --"
+      })
+  public void whenOpenBabelCannotConvertAndReturnsVersion_thenErrorOutputIsRecongised(
+      String openBabelOutput) throws Exception {
+    when(commandExecutor.executeCommand(any())).thenReturn(List.of(openBabelOutput));
+
+    Optional<String> actual = convertor.convert(new ConvertDTO("someInput", "someFormat"));
+    assertEquals(Optional.empty(), actual);
   }
 }
