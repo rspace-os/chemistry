@@ -74,7 +74,6 @@ public class IndigoImageGenerator implements ImageGenerator {
     indigo.setOption("render-output-format", imageDTO.outputFormat());
     indigo.setOption("render-margins", 10, 10);
     indigo.setOption("render-image-size", generateImageSize(imageDTO));
-    indigoObject.layout();
     try {
       return renderer.renderToBuffer(indigoObject);
     } catch (IndigoException e) {
