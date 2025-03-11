@@ -1,6 +1,7 @@
 package com.researchspace.chemistry.search;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -113,6 +114,29 @@ public class SearchIT {
 
     List<String> results = searchService.search("CCO");
     assertEquals(0, results.size());
+  }
+
+  @Test
+  public void testClearingSearchIndexes() throws Exception {
+    List<String> results = searchService.search("CCC");
+    assertEquals(0, results.size());
+
+    searchService.saveChemicalToFile("CCC", "1234");
+    results = searchService.search("CC");
+    assertEquals(1, results.size());
+    assertTrue(results.contains("1234"));
+
+    // clear
+    searchService.clearIndexFiles();
+    results = searchService.search("CCC");
+    assertEquals(0, results.size());
+
+    // confirm working for newly index files again
+    searchService.saveChemicalToFile("CCC", "5678");
+    results = searchService.search("CC");
+    assertEquals(1, results.size());
+    assertFalse(results.contains("1234"));
+    assertTrue(results.contains("5678"));
   }
 
   @ParameterizedTest

@@ -19,6 +19,11 @@ public class SearchController {
     this.searchService = searchService;
   }
 
+  @PostMapping(value = "/chemistry/clearSearchIndexes")
+  public @ResponseBody String clearSearchIndexes() throws IOException {
+    return searchService.clearIndexFiles();
+  }
+
   @PostMapping(value = "/chemistry/save")
   public @ResponseBody String convert(@Valid @RequestBody SaveDTO saveDTO) throws IOException {
     searchService.saveChemicalToFile(saveDTO.chemical(), saveDTO.chemicalId());
@@ -30,4 +35,5 @@ public class SearchController {
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
     return searchService.search(searchDTO.chemicalSearchTerm());
   }
+
 }
