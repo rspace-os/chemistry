@@ -69,7 +69,7 @@ public class SearchService {
     index.createNewFile();
   }
 
-  public String clearIndexFiles() throws IOException {
+  public void clearIndexFiles() throws IOException {
     LOGGER.info("clearing search indexes...");
 
     nonIndexedChemicals.delete();
@@ -78,7 +78,6 @@ public class SearchService {
     initFiles();
 
     LOGGER.info("... done");
-    return "Ok";
   }
 
 
