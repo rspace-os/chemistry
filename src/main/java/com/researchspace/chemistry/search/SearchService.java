@@ -69,6 +69,18 @@ public class SearchService {
     index.createNewFile();
   }
 
+  public void clearIndexFiles() throws IOException {
+    LOGGER.info("clearing search indexes...");
+
+    nonIndexedChemicals.delete();
+    indexedChemicals.delete();
+    index.delete();
+    initFiles();
+
+    LOGGER.info("... done");
+  }
+
+
   public void saveChemicalToFile(String chemical, String chemicalId) throws IOException {
     String smiles = convertService.convert(new ConvertDTO(chemical, "smiles"));
     FileWriter fileWriter = new FileWriter(nonIndexedChemicals, true);
@@ -140,4 +152,5 @@ public class SearchService {
     }
     return Collections.emptyList();
   }
+
 }

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -19,6 +20,12 @@ public class SearchController {
     this.searchService = searchService;
   }
 
+  @DeleteMapping(value = "/chemistry/clearSearchIndexes")
+  public @ResponseBody String clearSearchIndexes() throws IOException {
+    searchService.clearIndexFiles();
+    return "Cleared";
+  }
+
   @PostMapping(value = "/chemistry/save")
   public @ResponseBody String convert(@Valid @RequestBody SaveDTO saveDTO) throws IOException {
     searchService.saveChemicalToFile(saveDTO.chemical(), saveDTO.chemicalId());
@@ -30,4 +37,5 @@ public class SearchController {
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
     return searchService.search(searchDTO.chemicalSearchTerm());
   }
+
 }
