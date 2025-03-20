@@ -161,26 +161,28 @@ public class SearchIT {
   private static List<String> readFiles() throws Exception {
     List<String> searchFiles =
         List.of(
-                "aspirin_CompTox_DTXSID5020108.mol",
-                "aspirin_PubChem_2244.smiles",
-                "aspirin_PubChem_2244_2d.sdf",
-                "aspirin_PubChem_2244_3d.sdf",
-                "benzylpenicillin_GitHub_fusion809_artwork.mrv",
-                "caffeine.sdf",
-                "colchicine.mol",
-                "cosyntropin_CompTox_DTXSID201014470.mol",
-                "curamycin_A_CompTox_DTXSID40223473.mol",
-                "cyclophosphamide_GitHub_fusion809_artwork.mrv",
-                "esterification.mrv",
-                "lapatinib_PubChem_208908.smiles",
-                "lapatinib_PubChem_208908_2d.sdf",
-                "lapatinib_PubChem_208908_3d.sdf",
-                "propane.smiles",
-                "SGroupExpanded_GitHub_chemaxon_jchem-examples.mrv");
+            "aspirin_CompTox_DTXSID5020108.mol",
+            "aspirin_PubChem_2244.smiles",
+            "aspirin_PubChem_2244_2d.sdf",
+            "aspirin_PubChem_2244_3d.sdf",
+            "benzylpenicillin_GitHub_fusion809_artwork.mrv",
+            "caffeine.sdf",
+            "colchicine.mol",
+            "cosyntropin_CompTox_DTXSID201014470.mol",
+            "curamycin_A_CompTox_DTXSID40223473.mol",
+            "cyclophosphamide_GitHub_fusion809_artwork.mrv",
+            "esterification.mrv",
+            "lapatinib_PubChem_208908.smiles",
+            "lapatinib_PubChem_208908_2d.sdf",
+            "lapatinib_PubChem_208908_3d.sdf",
+            "propane.smiles",
+            "SGroupExpanded_GitHub_chemaxon_jchem-examples.mrv");
     try (Stream<Path> paths = Files.walk(Paths.get("src/test/resources/chemistry_file_examples"))) {
 
       return paths
-          .filter(file -> Files.isRegularFile(file) && searchFiles.contains(file.getFileName().toString()))
+          .filter(
+              file ->
+                  Files.isRegularFile(file) && searchFiles.contains(file.getFileName().toString()))
           .map(file -> file.getFileName().toString())
           .collect(Collectors.toList());
     }

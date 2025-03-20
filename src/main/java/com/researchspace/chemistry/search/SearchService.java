@@ -99,7 +99,6 @@ public class SearchService {
   public List<String> searchNonIndexedFile(String searchTerm)
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
     ProcessBuilder builder = new ProcessBuilder();
-    convertService.convert(new ConvertDTO(searchTerm, "smiles"));
     builder.command(
         "obabel", nonIndexedChemicals.getPath(), "-s" + searchTerm, "-o" + format, "-xt");
     LOGGER.info(
