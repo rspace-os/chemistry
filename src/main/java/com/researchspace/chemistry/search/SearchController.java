@@ -27,15 +27,14 @@ public class SearchController {
   }
 
   @PostMapping(value = "/chemistry/save")
-  public @ResponseBody String convert(@Valid @RequestBody SaveDTO saveDTO) throws IOException {
+  public @ResponseBody String save(@Valid @RequestBody SaveDTO saveDTO) throws IOException {
     searchService.saveChemicalToFile(saveDTO.chemical(), saveDTO.chemicalId());
     return "Saved";
   }
 
   @PostMapping(value = "/chemistry/search")
-  public @ResponseBody List<String> exportImage(@Valid @RequestBody SearchDTO searchDTO)
+  public @ResponseBody List<String> search(@Valid @RequestBody SearchDTO searchDTO)
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
     return searchService.search(searchDTO.chemicalSearchTerm());
   }
-
 }
