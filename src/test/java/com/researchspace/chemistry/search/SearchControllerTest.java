@@ -31,7 +31,6 @@ public class SearchControllerTest {
 
   private static final String CLEAR_SEARCH_INDEXES_ENDPOINT = "/chemistry/clearSearchIndexes";
 
-
   @Test
   void whenValidSearchRequest_thenReturns200AndResult() throws Exception {
     List<String> results = List.of("123", "456");
@@ -140,12 +139,8 @@ public class SearchControllerTest {
     doNothing().when(searchService).clearIndexFiles();
     verify(searchService, Mockito.never()).clearIndexFiles();
 
-    mockMvc
-        .perform(
-            delete(CLEAR_SEARCH_INDEXES_ENDPOINT))
-        .andExpect(status().isOk());
+    mockMvc.perform(delete(CLEAR_SEARCH_INDEXES_ENDPOINT)).andExpect(status().isOk());
 
     verify(searchService, Mockito.times(1)).clearIndexFiles();
   }
-
 }
