@@ -13,6 +13,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
@@ -36,7 +38,7 @@ public class SearchIT {
   @TempDir static File tempDir;
 
   @Autowired SearchService searchService;
-  final File INDEXED = new File(tempDir.getPath() + "/indexed.smi");
+  final File INDEXED = new File(tempDir.getPath() + "/indexed.fs");
 
   final File NON_INDEXED = new File(tempDir.getPath() + "/non-indexed.smi");
 
@@ -147,7 +149,7 @@ public class SearchIT {
   }
 
   @ParameterizedTest
-  @MethodSource("readFiles")
+  @MethodSource("readSuccessfulSearchFiles")
   public void whenChemicalIsSavedForSearch_thenShouldBeFound(String fileName) throws Exception {
     System.out.println(fileName);
     String fileContents = chemistryFileContents(fileName);
@@ -158,7 +160,7 @@ public class SearchIT {
     assertTrue(results.contains("1234"));
   }
 
-  private static List<String> readFiles() throws Exception {
+  private static List<String> readSuccessfulSearchFiles() throws Exception {
     List<String> searchFiles =
         List.of(
             "aspirin_CompTox_DTXSID5020108.mol",
@@ -185,6 +187,66 @@ public class SearchIT {
                   Files.isRegularFile(file) && searchFiles.contains(file.getFileName().toString()))
           .map(file -> file.getFileName().toString())
           .collect(Collectors.toList());
+    }
+  }
+
+  private static List<String> readAllFiles() throws Exception {
+    try (Stream<Path> paths = Files.walk(Paths.get("src/test/resources/chemistry_file_examples"))) {
+
+      return paths
+          .filter(Files::isRegularFile)
+          .map(file -> file.getFileName().toString())
+          .collect(Collectors.toList());
+    }
+  }
+
+  @Test
+  public void whenNewMoleculeIsSaved_thenShouldBeFoundInFastSearchIndex() throws Exception {
+    String smiles = "CCO";
+    searchService.saveChemicalToFile(createSaveDTO(smiles));
+    List<String> results = searchService.search(createSearchDTO(smiles));
+    assertEquals(1, results.size());
+    assertTrue(results.contains("1234"));
+  }
+
+  private void addChemicalsToUnindexed(int start) throws Exception {
+    List<String> chemFileName = readAllFiles();
+    int failCount = 0;
+    for (int i = start; i < chemFileName.size(); i++) {
+      try {
+        String fileName = chemFileName.get(i);
+        String fileType = FilenameUtils.getExtension(fileName);
+        String chemFileContents = chemistryFileContents(fileName);
+        searchService.saveChemicalToFile(
+            new SaveDTO(chemFileContents, String.valueOf(i), fileType));
+      } catch (Exception e) {
+        failCount++;
+        System.out.println("Failed to save file: " + chemFileName.get(i));
+      }
+    }
+    System.out.println("Failed to save " + failCount + " files");
+    System.out.println(Files.readString(INDEXED.toPath()));
+    System.out.println(Files.readString(NON_INDEXED.toPath()));
+    System.out.println(Files.readString(INDEX.toPath()));
+  }
+
+  @Test
+  public void searchWithFastSearch() throws Exception {
+    addChemicalsToUnindexed(0);
+    runChemicalIndexing();
+    addChemicalsToUnindexed(50);
+    runChemicalIndexing();
+    List<String> results = searchService.search(createSearchDTO("C"));
+    assertEquals(1, results.size());
+    // batch job to create fast search
+    // search fast search
+  }
+
+  private void runChemicalIndexing() {
+    try {
+      searchService.indexChemicals();
+    } catch (IOException | ExecutionException | InterruptedException | TimeoutException e) {
+      throw new RuntimeException(e);
     }
   }
 
