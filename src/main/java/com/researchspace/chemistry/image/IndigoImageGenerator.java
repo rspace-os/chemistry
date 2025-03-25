@@ -46,7 +46,7 @@ public class IndigoImageGenerator implements ImageGenerator {
       IndigoObject indigoObject = indigoFacade.load(indigo, imageDTO.input());
       indigo.setOption("render-output-format", "png");
       indigo.setOption("render-margins", 10, 10);
-      indigoObject.layout();
+      indigo.setOption("render-coloring", true);
       renderer.renderToFile(indigoObject, tmpPng.getPath());
 
       BufferedImage bufferedImage = ImageIO.read(tmpPng);
@@ -67,13 +67,14 @@ public class IndigoImageGenerator implements ImageGenerator {
 
   private byte[] render(ImageDTO imageDTO) {
     Indigo indigo = new Indigo();
-    IndigoRenderer renderer = new IndigoRenderer(indigo);
     indigo.setOption("ignore-stereochemistry-errors", true);
     IndigoObject indigoObject = indigoFacade.load(indigo, imageDTO.input());
 
+    IndigoRenderer renderer = new IndigoRenderer(indigo);
     indigo.setOption("render-output-format", imageDTO.outputFormat());
     indigo.setOption("render-margins", 10, 10);
     indigo.setOption("render-image-size", generateImageSize(imageDTO));
+    indigo.setOption("render-coloring", generateImageSize(imageDTO));
     try {
       return renderer.renderToBuffer(indigoObject);
     } catch (IndigoException e) {
