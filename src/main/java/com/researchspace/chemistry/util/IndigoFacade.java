@@ -64,10 +64,10 @@ public class IndigoFacade {
     } else {
       // probably a normal structure - either molecule or reaction
       try {
-        indigoObject = indigo.loadReaction(input);
+        indigoObject = indigo.loadMolecule(input);
       } catch (IndigoException e) {
         try {
-          indigoObject = indigo.loadMolecule(input);
+          indigoObject = indigo.loadReaction(input);
         } catch (IndigoException ex) {
           throw new ChemistryException(
               "Can't load input as molecule or reaction. Input: " + input, ex);
