@@ -49,36 +49,33 @@ public class IndigoFacade {
       throw new ChemistryException("Input is empty");
     }
     IndigoObject indigoObject;
-    String check = indigo.checkStructure(input);
-    if (check.contains("Error at loading structure")) {
-      // probably a query structure
+    try {
+      indigoObject = loadNormalStructure(indigo, input);
+    } catch (IndigoException e) {
       try {
-        indigoObject = indigo.loadQueryMolecule(input);
-      } catch (IndigoException e) {
-        try {
-          indigoObject = indigo.loadQueryReaction(input);
-        } catch (IndigoException ex) {
-          throw new ChemistryException(
-              "Can't load input as molecule or reaction. Input: "
-                  + StringUtils.abbreviate(input, 50),
-              ex);
-        }
-      }
-    } else {
-      // probably a normal structure - either molecule or reaction
-      try {
-        indigoObject = indigo.loadMolecule(input);
-      } catch (IndigoException e) {
-        try {
-          indigoObject = indigo.loadReaction(input);
-        } catch (IndigoException ex) {
-          throw new ChemistryException(
-              "Can't load input as molecule or reaction. Input: "
-                  + StringUtils.abbreviate(input, 50),
-              ex);
-        }
+        indigoObject = loadQueryStructure(indigo, input);
+      } catch (IndigoException ex) {
+        throw new ChemistryException(
+            "Can't load input as molecule or reaction. Input: " + StringUtils.abbreviate(input, 50),
+            ex);
       }
     }
     return indigoObject;
+  }
+
+  private IndigoObject loadQueryStructure(Indigo indigo, String input) {
+    try {
+      return indigo.loadQueryMolecule(input);
+    } catch (IndigoException e) {
+      return indigo.loadQueryReaction(input);
+    }
+  }
+
+  private IndigoObject loadNormalStructure(Indigo indigo, String input) {
+    try {
+      return indigo.loadMolecule(input);
+    } catch (IndigoException e) {
+      return indigo.loadReaction(input);
+    }
   }
 }

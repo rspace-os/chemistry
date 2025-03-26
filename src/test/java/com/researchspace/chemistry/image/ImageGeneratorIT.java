@@ -60,7 +60,7 @@ public class ImageGeneratorIT {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"gif", "txt", "pdf"})
+  @ValueSource(strings = {"gif", "docx", "pdf"})
   public void whenInvalidImageFormat_thenThrowException(String outputFormat) {
     ImageDTO imageDTO = new ImageDTO("CCC", INPUT_FORMAT, outputFormat, "100", "100");
     ChemistryException exception =
