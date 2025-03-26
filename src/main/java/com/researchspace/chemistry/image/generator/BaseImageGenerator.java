@@ -8,10 +8,9 @@ import org.springframework.stereotype.Service;
 /**
  * Abstract base class for image generators, implementing the {@link ImageGenerator} interface.
  * Provides support for chaining multiple image generators and error handling during the image
- * generation process.
- * This class is designed to be extended by specific implementations of image generators.
- * The chain-of-responsibility pattern is utilized to delegate the generation process to the
- * next image generator in the chain if the current implementation cannot handle the request.
+ * generation process. This class is designed to be extended by specific implementations of image
+ * generators. The chain-of-responsibility pattern is utilized to delegate the generation process to
+ * the next image generator in the chain if the current implementation cannot handle the request.
  * Subclasses are expected to provide a concrete implementation of the {@code generateImage} method
  * defined in the {@link ImageGenerator} interface.
  */
