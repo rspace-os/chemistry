@@ -33,7 +33,7 @@ public class OpenBabelOriginalFormatImageGenerator extends BaseImageGenerator {
     File inFile = null;
     File outFile = null;
     try {
-      inFile = File.createTempFile("temp-", ".cdxml");
+      inFile = File.createTempFile("temp-", "." + imageDTO.inputFormat());
       outFile = File.createTempFile("temp-", "." + imageDTO.outputFormat());
 
       byte[] chemBytes = getChemBytes(imageDTO.input());
