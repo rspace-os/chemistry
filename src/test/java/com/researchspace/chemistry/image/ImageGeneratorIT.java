@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.researchspace.chemistry.ChemistryException;
+import com.researchspace.chemistry.image.generator.ImageGeneratorChain;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import javax.imageio.ImageIO;
@@ -15,14 +16,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-public class IndigoImageGeneratorIT {
+public class ImageGeneratorIT {
 
-  @Autowired IndigoImageGenerator imageGenerator;
+  static final String INPUT_FORMAT = "smi";
+
+  @Autowired ImageGeneratorChain imageGenerator;
 
   @ParameterizedTest
   @ValueSource(strings = {"png", "svg", "jpg", "jpeg"})
-  public void whenValidImageFormat_thenImageGenerated(String format) {
-    ImageDTO imageDTO = new ImageDTO("CCC", format, "100", "100");
+  public void whenValidImageFormat_thenImageGenerated(String outputFormat) {
+    ImageDTO imageDTO = new ImageDTO("CCC", INPUT_FORMAT, outputFormat, "100", "100");
     byte[] image = imageGenerator.generateImage(imageDTO);
     assert image.length > 0;
   }
@@ -32,7 +35,11 @@ public class IndigoImageGeneratorIT {
     int imageWidthAndHeight = 100;
     ImageDTO imageDTO =
         new ImageDTO(
-            "CCC", "png", String.valueOf(imageWidthAndHeight), String.valueOf(imageWidthAndHeight));
+            "CCC",
+            INPUT_FORMAT,
+            "png",
+            String.valueOf(imageWidthAndHeight),
+            String.valueOf(imageWidthAndHeight));
     byte[] bytes = imageGenerator.generateImage(imageDTO);
     BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
     assertEquals(imageWidthAndHeight, image.getWidth());
@@ -44,7 +51,8 @@ public class IndigoImageGeneratorIT {
   public void whenNoSizeProvided_thenUseDefaultImageSize(String imageWidthAndHeight)
       throws Exception {
     int defaultWidthAndHeight = 500;
-    ImageDTO imageDTO = new ImageDTO("CCC", "png", imageWidthAndHeight, imageWidthAndHeight);
+    ImageDTO imageDTO =
+        new ImageDTO("CCC", INPUT_FORMAT, "png", imageWidthAndHeight, imageWidthAndHeight);
     byte[] bytes = imageGenerator.generateImage(imageDTO);
     BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
     assertEquals(defaultWidthAndHeight, image.getWidth());
@@ -53,19 +61,19 @@ public class IndigoImageGeneratorIT {
 
   @ParameterizedTest
   @ValueSource(strings = {"gif", "txt", "pdf"})
-  public void whenInvalidImageFormat_thenThrowException(String format) {
-    ImageDTO imageDTO = new ImageDTO("CCC", format, "100", "100");
+  public void whenInvalidImageFormat_thenThrowException(String outputFormat) {
+    ImageDTO imageDTO = new ImageDTO("CCC", INPUT_FORMAT, outputFormat, "100", "100");
     ChemistryException exception =
         assertThrows(ChemistryException.class, () -> imageGenerator.generateImage(imageDTO));
-    assertEquals("Unsupported image format: " + format, exception.getMessage());
+    assertEquals("Failed to generate image with all available libraries.", exception.getMessage());
   }
 
   @ParameterizedTest
   @NullAndEmptySource
-  public void whenNullOrEmptyImageFormat_thenThrowException(String format) {
-    ImageDTO imageDTO = new ImageDTO("CCC", format, "100", "100");
+  public void whenNullOrEmptyImageFormat_thenThrowException(String outputFormat) {
+    ImageDTO imageDTO = new ImageDTO("CCC", INPUT_FORMAT, outputFormat, "100", "100");
     ChemistryException exception =
         assertThrows(ChemistryException.class, () -> imageGenerator.generateImage(imageDTO));
-    assertEquals("Output format is empty", exception.getMessage());
+    assertEquals("Failed to generate image with all available libraries.", exception.getMessage());
   }
 }

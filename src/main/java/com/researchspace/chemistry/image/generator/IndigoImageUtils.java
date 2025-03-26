@@ -1,10 +1,11 @@
-package com.researchspace.chemistry.image;
+package com.researchspace.chemistry.image.generator;
 
 import com.epam.indigo.Indigo;
 import com.epam.indigo.IndigoException;
 import com.epam.indigo.IndigoObject;
 import com.epam.indigo.IndigoRenderer;
 import com.researchspace.chemistry.ChemistryException;
+import com.researchspace.chemistry.image.ImageDTO;
 import com.researchspace.chemistry.util.IndigoFacade;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -16,16 +17,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 @Service
-public class IndigoImageGenerator implements ImageGenerator {
+public class IndigoImageUtils {
   private static final String DEFAULT_WIDTH_HEIGHT = "500";
 
   private final IndigoFacade indigoFacade;
 
-  public IndigoImageGenerator(IndigoFacade indigoFacade) {
+  public IndigoImageUtils(IndigoFacade indigoFacade) {
     this.indigoFacade = indigoFacade;
   }
 
-  @Override
   public byte[] generateImage(ImageDTO imageDTO) {
     String outputFormat = imageDTO.outputFormat();
     if (outputFormat == null || outputFormat.isEmpty()) {
@@ -61,7 +61,7 @@ public class IndigoImageGenerator implements ImageGenerator {
       tmpPng.delete();
       return bufferedImageOut.toByteArray();
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new ChemistryException("Unable to generate image: ", e);
     }
   }
 

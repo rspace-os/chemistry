@@ -1,5 +1,6 @@
 package com.researchspace.chemistry.image;
 
+import com.researchspace.chemistry.image.generator.ImageGeneratorChain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -8,9 +9,9 @@ import org.springframework.stereotype.Service;
 public class ImageService {
   private static final Logger LOGGER = LoggerFactory.getLogger(ImageService.class);
 
-  private final ImageGenerator imageGenerator;
+  private final ImageGeneratorChain imageGenerator;
 
-  public ImageService(ImageGenerator imageGenerator) {
+  public ImageService(ImageGeneratorChain imageGenerator) {
     this.imageGenerator = imageGenerator;
   }
 

@@ -6,6 +6,7 @@ import com.epam.indigo.IndigoObject;
 import com.researchspace.chemistry.ChemistryException;
 import com.researchspace.chemistry.convert.ConvertDTO;
 import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -58,7 +59,9 @@ public class IndigoFacade {
           indigoObject = indigo.loadQueryReaction(input);
         } catch (IndigoException ex) {
           throw new ChemistryException(
-              "Can't load input as molecule or reaction. Input: " + input, ex);
+              "Can't load input as molecule or reaction. Input: "
+                  + StringUtils.abbreviate(input, 50),
+              ex);
         }
       }
     } else {
@@ -70,7 +73,9 @@ public class IndigoFacade {
           indigoObject = indigo.loadReaction(input);
         } catch (IndigoException ex) {
           throw new ChemistryException(
-              "Can't load input as molecule or reaction. Input: " + input, ex);
+              "Can't load input as molecule or reaction. Input: "
+                  + StringUtils.abbreviate(input, 50),
+              ex);
         }
       }
     }

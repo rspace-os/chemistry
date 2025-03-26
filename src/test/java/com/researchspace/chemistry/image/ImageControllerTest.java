@@ -23,13 +23,14 @@ public class ImageControllerTest {
   private static final String ENDPOINT = "/chemistry/image";
 
   @Test
-  void whenValidSearchRequest_thenReturns200AndResult() throws Exception {
+  void whenValidRequest_thenReturns200AndResult() throws Exception {
     byte[] results = "an image".getBytes();
     when(imageService.exportImage(any())).thenReturn(results);
     String validRequestBody =
         """
             {
                 "input": "CCC",
+                "inputFormat": "smiles",
                 "outputFormat": "png"
             }
             """;
