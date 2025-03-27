@@ -22,12 +22,10 @@ public class CompositeConvertor implements Convertor {
 
   @Override
   public Optional<String> convert(ConvertDTO convertDTO) {
-    Optional<String> converted = Optional.empty();
-    if (canBeConvertedByOpenBabel(convertDTO.inputFormat())) {
+    Optional<String> converted;
+    converted = indigoConvertor.convert(convertDTO);
+    if (converted.isEmpty() && canBeConvertedByOpenBabel(convertDTO.inputFormat())) {
       converted = openBabelConvertor.convert(convertDTO);
-    }
-    if (converted.isEmpty()) {
-      converted = indigoConvertor.convert(convertDTO);
     }
     return converted;
   }
