@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.researchspace.chemistry.ChemistryException;
-import com.researchspace.chemistry.image.generator.ImageGeneratorChain;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import javax.imageio.ImageIO;
@@ -16,17 +15,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-public class ImageGeneratorIT {
-
+public class ImageServiceIT {
   static final String INPUT_FORMAT = "smi";
 
-  @Autowired ImageGeneratorChain imageGenerator;
+  @Autowired ImageService imageService;
 
   @ParameterizedTest
   @ValueSource(strings = {"png", "svg", "jpg", "jpeg"})
   public void whenValidImageFormat_thenImageGenerated(String outputFormat) {
     ImageDTO imageDTO = new ImageDTO("CCC", INPUT_FORMAT, outputFormat, "100", "100");
-    byte[] image = imageGenerator.generateImage(imageDTO);
+    byte[] image = imageService.exportImage(imageDTO);
     assert image.length > 0;
   }
 
@@ -40,7 +38,7 @@ public class ImageGeneratorIT {
             "png",
             String.valueOf(imageWidthAndHeight),
             String.valueOf(imageWidthAndHeight));
-    byte[] bytes = imageGenerator.generateImage(imageDTO);
+    byte[] bytes = imageService.exportImage(imageDTO);
     BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
     assertEquals(imageWidthAndHeight, image.getWidth());
     assertEquals(imageWidthAndHeight, image.getHeight());
@@ -53,7 +51,7 @@ public class ImageGeneratorIT {
     int defaultWidthAndHeight = 500;
     ImageDTO imageDTO =
         new ImageDTO("CCC", INPUT_FORMAT, "png", imageWidthAndHeight, imageWidthAndHeight);
-    byte[] bytes = imageGenerator.generateImage(imageDTO);
+    byte[] bytes = imageService.exportImage(imageDTO);
     BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
     assertEquals(defaultWidthAndHeight, image.getWidth());
     assertEquals(defaultWidthAndHeight, image.getHeight());
@@ -64,7 +62,7 @@ public class ImageGeneratorIT {
   public void whenInvalidImageFormat_thenThrowException(String outputFormat) {
     ImageDTO imageDTO = new ImageDTO("CCC", INPUT_FORMAT, outputFormat, "100", "100");
     ChemistryException exception =
-        assertThrows(ChemistryException.class, () -> imageGenerator.generateImage(imageDTO));
+        assertThrows(ChemistryException.class, () -> imageService.exportImage(imageDTO));
     assertEquals("Failed to generate image with all available libraries.", exception.getMessage());
   }
 
@@ -73,7 +71,7 @@ public class ImageGeneratorIT {
   public void whenNullOrEmptyImageFormat_thenThrowException(String outputFormat) {
     ImageDTO imageDTO = new ImageDTO("CCC", INPUT_FORMAT, outputFormat, "100", "100");
     ChemistryException exception =
-        assertThrows(ChemistryException.class, () -> imageGenerator.generateImage(imageDTO));
+        assertThrows(ChemistryException.class, () -> imageService.exportImage(imageDTO));
     assertEquals("Failed to generate image with all available libraries.", exception.getMessage());
   }
 }

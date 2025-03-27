@@ -5,6 +5,7 @@ import com.researchspace.chemistry.util.CommandExecutor;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import org.apache.commons.codec.binary.Base64;
@@ -18,18 +19,17 @@ import org.springframework.stereotype.Service;
  * original as those generated with Indigo.
  */
 @Service
-public class OpenBabelOriginalFormatImageGenerator extends BaseImageGenerator {
-  private static final Logger LOGGER =
-      LoggerFactory.getLogger(OpenBabelOriginalFormatImageGenerator.class);
+public class OpenBabelImageGenerator implements ImageGenerator {
+  private static final Logger LOGGER = LoggerFactory.getLogger(OpenBabelImageGenerator.class);
 
   private final CommandExecutor commandExecutor;
 
-  public OpenBabelOriginalFormatImageGenerator(CommandExecutor commandExecutor) {
+  public OpenBabelImageGenerator(CommandExecutor commandExecutor) {
     this.commandExecutor = commandExecutor;
   }
 
   @Override
-  public byte[] generateImage(ImageDTO imageDTO) {
+  public Optional<byte[]> generateImage(ImageDTO imageDTO) {
     File inFile = null;
     File outFile = null;
     try {
@@ -53,9 +53,9 @@ public class OpenBabelOriginalFormatImageGenerator extends BaseImageGenerator {
 
       commandExecutor.executeCommand(builder);
 
-      return Files.readAllBytes(outFile.toPath());
+      return Optional.of(Files.readAllBytes(outFile.toPath()));
     } catch (IOException | ExecutionException | InterruptedException | TimeoutException e) {
-      return handleError(OpenBabelOriginalFormatImageGenerator.class.getName(), e, imageDTO);
+      return Optional.empty();
     } finally {
       try {
         Files.delete(inFile.toPath());
