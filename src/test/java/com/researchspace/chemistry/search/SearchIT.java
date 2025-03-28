@@ -38,11 +38,11 @@ public class SearchIT {
   @TempDir static File tempDir;
 
   @Autowired SearchService searchService;
-  final File INDEXED = new File(tempDir.getPath() + "/indexed.fs");
+  final File INDEXED = new File(tempDir.getPath() + "/fastSearchChemicals.fs");
 
-  final File NON_INDEXED = new File(tempDir.getPath() + "/non-indexed.smi");
+  final File NON_INDEXED = new File(tempDir.getPath() + "/nonIndexedChemicals.smi");
 
-  final File INDEX = new File(tempDir.getPath() + "/index.fs");
+  final File INDEX = new File(tempDir.getPath() + "/chemicalsMaster.smi");
 
   @AfterEach
   public void clearFileContents() {
@@ -212,7 +212,7 @@ public class SearchIT {
   private void addChemicalsToUnindexed(int start) throws Exception {
     List<String> chemFileName = readAllFiles();
     int failCount = 0;
-    for (int i = start; i < chemFileName.size(); i++) {
+    for (int i = start; i < start + chemFileName.size(); i++) {
       try {
         String fileName = chemFileName.get(i);
         String fileType = FilenameUtils.getExtension(fileName);
@@ -221,13 +221,10 @@ public class SearchIT {
             new SaveDTO(chemFileContents, String.valueOf(i), fileType));
       } catch (Exception e) {
         failCount++;
-        System.out.println("Failed to save file: " + chemFileName.get(i));
+        System.out.println("Failed to save file: " + chemFileName.get(i - start));
       }
     }
     System.out.println("Failed to save " + failCount + " files");
-    System.out.println(Files.readString(INDEXED.toPath()));
-    System.out.println(Files.readString(NON_INDEXED.toPath()));
-    System.out.println(Files.readString(INDEX.toPath()));
   }
 
   @Test
@@ -236,6 +233,7 @@ public class SearchIT {
     runChemicalIndexing();
     addChemicalsToUnindexed(50);
     runChemicalIndexing();
+    addChemicalsToUnindexed(100);
     List<String> results = searchService.search(createSearchDTO("C"));
     assertEquals(1, results.size());
     // batch job to create fast search

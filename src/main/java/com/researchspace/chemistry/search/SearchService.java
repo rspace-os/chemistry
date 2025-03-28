@@ -28,19 +28,16 @@ import org.springframework.stereotype.Service;
 public class SearchService {
   private static final Logger LOGGER = LoggerFactory.getLogger(SearchService.class);
 
-  @Value("${search.file.format}")
-  private String format;
-
   @Value("${search.file.dir}")
   private String outputDir;
 
+  private static final String CHEM_FILE_FORMAT = "smi";
+
+  private File chemicalsMaster;
+
+  private File fastSearchChemicals;
+
   private File nonIndexedChemicals;
-
-  private File indexedChemicals;
-
-  private File index;
-
-  private File fsChemicals;
 
   private final CommandExecutor commandExecutor;
 
@@ -64,25 +61,22 @@ public class SearchService {
     if (!dataDir.exists()) {
       dataDir.mkdirs();
     }
-    nonIndexedChemicals = new File(outputDir + "/non-indexed." + format);
+    chemicalsMaster = new File(outputDir + "/chemicalsMaster." + CHEM_FILE_FORMAT);
+    chemicalsMaster.createNewFile();
+
+    fastSearchChemicals = new File(outputDir + "/fastSearchChemicals.fs");
+    fastSearchChemicals.createNewFile();
+
+    nonIndexedChemicals = new File(outputDir + "/nonIndexedChemicals." + CHEM_FILE_FORMAT);
     nonIndexedChemicals.createNewFile();
-
-    indexedChemicals = new File(outputDir + "/indexed.fs");
-    indexedChemicals.createNewFile();
-
-    index = new File(outputDir + "/index.fs");
-    index.createNewFile();
-
-    fsChemicals = new File(outputDir + "/fsChemicals.fs");
-    fsChemicals.createNewFile();
   }
 
   public void clearIndexFiles() throws IOException {
     LOGGER.info("clearing search indexes...");
 
+    chemicalsMaster.delete();
+    fastSearchChemicals.delete();
     nonIndexedChemicals.delete();
-    indexedChemicals.delete();
-    index.delete();
     initFiles();
 
     LOGGER.info("... done");
@@ -90,7 +84,7 @@ public class SearchService {
 
   public void saveChemicalToFile(SaveDTO saveDTO) throws IOException {
     String smiles = getSmilesFromOpenBabel(saveDTO.chemical(), saveDTO.chemicalFormat());
-    FileWriter fileWriter = new FileWriter(nonIndexedChemicals, true);
+    FileWriter fileWriter = new FileWriter(chemicalsMaster, true);
     try (PrintWriter printWriter = new PrintWriter(fileWriter)) {
       printWriter.println(smiles.strip() + " " + saveDTO.chemicalId());
       printWriter.flush();
@@ -105,9 +99,9 @@ public class SearchService {
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
     ProcessBuilder builder = new ProcessBuilder();
     builder.command(
-        "obabel", nonIndexedChemicals.getPath(), "-s" + searchTerm, "-o" + format, "-xt");
+        "obabel", chemicalsMaster.getPath(), "-s" + searchTerm, "-o" + CHEM_FILE_FORMAT, "-xt");
     LOGGER.info(
-        "Searching without index for {} in file: {}", searchTerm, nonIndexedChemicals.getPath());
+        "Searching without index for {} in file: {}", searchTerm, chemicalsMaster.getPath());
     LOGGER.info("output:");
     return commandExecutor.executeCommand(builder);
   }
@@ -116,32 +110,32 @@ public class SearchService {
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
     ProcessBuilder builder = new ProcessBuilder();
     builder.command(
-        "obabel", indexedChemicals.getPath(), "-s" + searchTerm.strip(), "-osmi", "-xt");
-    LOGGER.info("Searching with index for {} in file: {}", searchTerm, indexedChemicals.getPath());
+        "obabel", fastSearchChemicals.getPath(), "-s" + searchTerm.strip(), "-osmi", "-xt");
+    LOGGER.info("Searching with index for {} in file: {}", searchTerm, fastSearchChemicals.getPath());
     return commandExecutor.executeCommand(builder);
   }
 
   public List<String> searchChemsFile(String searchTerm)
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
     ProcessBuilder builder = new ProcessBuilder();
-    builder.command("obabel", fsChemicals.getPath(), "-s" + searchTerm.strip(), "-osmi", "-xt");
-    LOGGER.info("Searching with index for {} in file: {}", searchTerm, fsChemicals.getPath());
+    builder.command("obabel", fastSearchChemicals.getPath(), "-s" + searchTerm.strip(), "-osmi", "-xt");
+    LOGGER.info("Searching with index for {} in file: {}", searchTerm, fastSearchChemicals.getPath());
     return commandExecutor.executeCommand(builder);
   }
 
   // Optional: not currently configured
   private void combineChemicalFiles() throws IOException {
-    File out = new File(indexedChemicals.getPath());
+    File out = new File(fastSearchChemicals.getPath());
     FileWriter fileWriter = new FileWriter(out, true);
     try (PrintWriter printWriter = new PrintWriter(fileWriter)) {
-      try (BufferedReader reader = new BufferedReader(new FileReader(nonIndexedChemicals))) {
+      try (BufferedReader reader = new BufferedReader(new FileReader(chemicalsMaster))) {
         String line;
         while ((line = reader.readLine()) != null) {
           printWriter.println(line);
         }
       }
       // clear contents of non-indexed file, since they've been moved
-      new FileWriter(nonIndexedChemicals).close();
+      new FileWriter(chemicalsMaster).close();
       LOGGER.info("Combined chemical files");
     } catch (Exception e) {
       LOGGER.error("Error while combining chemical files", e);
@@ -152,7 +146,7 @@ public class SearchService {
   private void createIndexFile()
       throws IOException, InterruptedException, ExecutionException, TimeoutException {
     ProcessBuilder builder = new ProcessBuilder();
-    builder.command("obabel", indexedChemicals.getPath(), "-O" + index.getPath());
+    builder.command("obabel", fastSearchChemicals.getPath(), "-O" + nonIndexedChemicals.getPath());
     commandExecutor.executeCommand(builder);
   }
 
@@ -201,19 +195,19 @@ public class SearchService {
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
     ProcessBuilder builder = new ProcessBuilder();
     builder.command(
-        "obabel", "-:\"" + smiles + "\"", "-ofs", "-O" + fsChemicals.getPath(), "-u");
+        "obabel", "-:\"" + smiles + "\"", "-ofs", "-O" + fastSearchChemicals.getPath(), "-u");
     LOGGER.info(
         "Adding chemical with SMILES '{}' to the fast search index file: {}",
         smiles,
-        fsChemicals.getPath());
+        fastSearchChemicals.getPath());
     commandExecutor.executeCommand(builder);
   }
 
   public void indexChemicals() throws IOException, ExecutionException, InterruptedException, TimeoutException {
     // convert non-indexed file to fs
     ProcessBuilder builder = new ProcessBuilder();
-    builder.command("obabel", nonIndexedChemicals.getPath(), "-O", fsChemicals.getPath(), "-u");
-    LOGGER.info("indexing chemicals from {} to {}", nonIndexedChemicals.getPath(), fsChemicals.getPath());
+    builder.command("obabel", chemicalsMaster.getPath(), "-O", fastSearchChemicals.getPath(), "-u");
+    LOGGER.info("indexing chemicals from {} to {}", chemicalsMaster.getPath(), fastSearchChemicals.getPath());
     commandExecutor.executeCommand(builder);
   }
 }
