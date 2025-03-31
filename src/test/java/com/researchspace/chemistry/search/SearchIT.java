@@ -64,8 +64,8 @@ public class SearchIT {
 
   @Test
   public void whenSaveChemical_thenAddedToFile() throws Exception {
-    searchService.saveChemicalToFile(new SaveDTO("C", "1234"));
-    searchService.saveChemicalToFile(new SaveDTO("CCC", "5678"));
+    searchService.saveChemicals(new SaveDTO("C", "1234"));
+    searchService.saveChemicals(new SaveDTO("CCC", "5678"));
 
     String fileContents = Files.readString(NON_INDEXED.toPath());
     assertEquals("C 1234\nCCC 5678\n", fileContents);
@@ -73,8 +73,8 @@ public class SearchIT {
 
   @Test
   public void whenSearchChemicalExists_thenIsFound() throws Exception {
-    searchService.saveChemicalToFile(new SaveDTO("C", "1234"));
-    searchService.saveChemicalToFile(new SaveDTO("CCC", "5678"));
+    searchService.saveChemicals(new SaveDTO("C", "1234"));
+    searchService.saveChemicals(new SaveDTO("CCC", "5678"));
 
     List<String> results = searchService.search(createSearchDTO("CCC"));
     assertEquals(1, results.size());
@@ -83,8 +83,8 @@ public class SearchIT {
 
   @Test
   public void whenSearchMatchesSubstructure_thenIsFound() throws Exception {
-    searchService.saveChemicalToFile(new SaveDTO("C", "123"));
-    searchService.saveChemicalToFile(new SaveDTO("CCC", "5678"));
+    searchService.saveChemicals(new SaveDTO("C", "123"));
+    searchService.saveChemicals(new SaveDTO("CCC", "5678"));
 
     List<String> results = searchService.search(createSearchDTO("CC"));
     assertEquals(1, results.size());
@@ -93,21 +93,21 @@ public class SearchIT {
 
   @Test
   public void whenSearchMatchesMultipleSubstructures_thenAllReturned() throws Exception {
-    searchService.saveChemicalToFile(new SaveDTO("C", "123"));
-    searchService.saveChemicalToFile(new SaveDTO("CCC", "5678"));
-    searchService.saveChemicalToFile(new SaveDTO("CCCC", "789"));
+    searchService.saveChemicals(new SaveDTO("C", "123"));
+    searchService.saveChemicals(new SaveDTO("CCC", "456"));
+    searchService.saveChemicals(new SaveDTO("CCCC", "789"));
 
     List<String> results = searchService.search(createSearchDTO("CC"));
     assertEquals(2, results.size());
-    assertTrue(results.contains("5678"));
+    assertTrue(results.contains("456"));
     assertTrue(results.contains("789"));
   }
 
   @Test
   public void whenMultipleHitsForSameStructure_thenAllHitIdsReturned() throws Exception {
-    searchService.saveChemicalToFile(new SaveDTO("C", "123"));
-    searchService.saveChemicalToFile(new SaveDTO("CCC", "456"));
-    searchService.saveChemicalToFile(new SaveDTO("CCC", "789"));
+    searchService.saveChemicals(new SaveDTO("C", "123"));
+    searchService.saveChemicals(new SaveDTO("CCC", "456"));
+    searchService.saveChemicals(new SaveDTO("CCC", "789"));
 
     List<String> results = searchService.search(createSearchDTO("CCC"));
     assertEquals(2, results.size());
@@ -117,9 +117,9 @@ public class SearchIT {
 
   @Test
   public void whenNoMatches_thenEmptyListReturned() throws Exception {
-    searchService.saveChemicalToFile(new SaveDTO("C", "123"));
-    searchService.saveChemicalToFile(new SaveDTO("CCC", "456"));
-    searchService.saveChemicalToFile(new SaveDTO("CCC", "789"));
+    searchService.saveChemicals(new SaveDTO("C", "123"));
+    searchService.saveChemicals(new SaveDTO("CCC", "456"));
+    searchService.saveChemicals(new SaveDTO("CCC", "789"));
 
     List<String> results = searchService.search(createSearchDTO("CCO"));
     assertEquals(0, results.size());
@@ -130,18 +130,18 @@ public class SearchIT {
     List<String> results = searchService.search(createSearchDTO("CCC"));
     assertEquals(0, results.size());
 
-    searchService.saveChemicalToFile(new SaveDTO("CCC", "1234"));
+    searchService.saveChemicals(new SaveDTO("CCC", "1234"));
     results = searchService.search(createSearchDTO("CC"));
     assertEquals(1, results.size());
     assertTrue(results.contains("1234"));
 
     // clear
-    searchService.clearIndexFiles();
+    searchService.clearFiles();
     results = searchService.search(createSearchDTO("CCC"));
     assertEquals(0, results.size());
 
     // confirm working for newly index files again
-    searchService.saveChemicalToFile(new SaveDTO("CCC", "5678"));
+    searchService.saveChemicals(new SaveDTO("CCC", "5678"));
     results = searchService.search(createSearchDTO("CC"));
     assertEquals(1, results.size());
     assertFalse(results.contains("1234"));
@@ -153,7 +153,7 @@ public class SearchIT {
   public void whenChemicalIsSavedForSearch_thenShouldBeFound(String fileName) throws Exception {
     System.out.println(fileName);
     String fileContents = chemistryFileContents(fileName);
-    searchService.saveChemicalToFile(new SaveDTO(fileContents, "1234"));
+    searchService.saveChemicals(new SaveDTO(fileContents, "1234"));
     List<String> results =
         searchService.search(new SearchDTO(fileContents, FilenameUtils.getExtension(fileName)));
     assertEquals(1, results.size());
@@ -203,41 +203,76 @@ public class SearchIT {
   @Test
   public void whenNewMoleculeIsSaved_thenShouldBeFoundInFastSearchIndex() throws Exception {
     String smiles = "CCO";
-    searchService.saveChemicalToFile(createSaveDTO(smiles));
+    searchService.saveChemicals(createSaveDTO(smiles));
     List<String> results = searchService.search(createSearchDTO(smiles));
     assertEquals(1, results.size());
     assertTrue(results.contains("1234"));
   }
 
-  private void addChemicalsToUnindexed(int start) throws Exception {
-    List<String> chemFileName = readAllFiles();
+  private void add10Chemicals(int start) throws Exception {
+    List<String> smiles =
+        Files.readAllLines(Path.of("src/test/resources/search_file/chemicals.smi"));
+    List<String> subset = smiles.subList(start, start + 10);
     int failCount = 0;
-    for (int i = start; i < start + chemFileName.size(); i++) {
+    for (int i = 0; i < 10; i++) {
       try {
-        String fileName = chemFileName.get(i);
-        String fileType = FilenameUtils.getExtension(fileName);
-        String chemFileContents = chemistryFileContents(fileName);
-        searchService.saveChemicalToFile(
-            new SaveDTO(chemFileContents, String.valueOf(i), fileType));
+        searchService.saveChemicals(new SaveDTO(subset.get(i), String.valueOf(start + i), "smi"));
       } catch (Exception e) {
         failCount++;
-        System.out.println("Failed to save file: " + chemFileName.get(i - start));
+        System.out.println("Failed to save file: " + subset.get(i));
       }
     }
     System.out.println("Failed to save " + failCount + " files");
   }
 
   @Test
-  public void searchWithFastSearch() throws Exception {
-    addChemicalsToUnindexed(0);
+  public void whenNewlyAddedChemicalsIndexed_thenCorrectResultsFound() throws Exception {
+    add10Chemicals(0);
     runChemicalIndexing();
-    addChemicalsToUnindexed(50);
+    List<String> results = searchService.search(createSearchDTO("c"));
+    assertEquals(8, results.size());
+    add10Chemicals(10);
     runChemicalIndexing();
-    addChemicalsToUnindexed(100);
+    List<String> results20 = searchService.search(createSearchDTO("c"));
+    assertEquals(17, results20.size());
+    add10Chemicals(20);
+    runChemicalIndexing();
+    List<String> results30 = searchService.search(createSearchDTO("c"));
+    assertEquals(26, results30.size());
+    add10Chemicals(30);
+    runChemicalIndexing();
+    List<String> results40 = searchService.search(createSearchDTO("c"));
+    assertEquals(33, results40.size());
+    add10Chemicals(40);
+    runChemicalIndexing();
+    List<String> results50 = searchService.search(createSearchDTO("c"));
+    assertEquals(40, results50.size());
+  }
+
+  @Test
+  public void whenChemsIndexed_thenChemsFound() throws Exception {
+    add10Chemicals(0);
+    runChemicalIndexing();
     List<String> results = searchService.search(createSearchDTO("C"));
-    assertEquals(1, results.size());
-    // batch job to create fast search
-    // search fast search
+    List<String> expectedChemIdHits = List.of("0", "1", "2", "4", "5", "6", "7", "8");
+    assertEquals(expectedChemIdHits, results);
+  }
+
+  @Test
+  public void whenChemsNotIndexed_thenChemsFound() throws Exception {
+    add10Chemicals(0);
+    List<String> results = searchService.search(createSearchDTO("C"));
+    List<String> expectedChemIdHits = List.of("0", "1", "2", "4", "5", "6", "7", "8");
+    assertEquals(expectedChemIdHits, results);
+  }
+
+  @Test
+  public void whenFastSearchUpdated_thenNewlyIndexedChemsRemovedFromNonIndexedFile()
+      throws Exception {
+    add10Chemicals(0);
+    assertEquals(10, Files.readAllLines(NON_INDEXED.toPath()).size());
+    runChemicalIndexing();
+    assertEquals(0, Files.readAllLines(NON_INDEXED.toPath()).size());
   }
 
   private void runChemicalIndexing() {
@@ -257,15 +292,15 @@ public class SearchIT {
   }
 
   private SaveDTO createSaveDTO(String smiles) {
-    return new SaveDTO(smiles, "smiles");
+    return new SaveDTO(smiles, "1234");
   }
 
   @ParameterizedTest
   @NullAndEmptySource
   public void whenEmptyOrNullSearchTerm_thenEmptyListReturned(String searchTerm) throws Exception {
-    searchService.saveChemicalToFile(new SaveDTO("C", "123"));
-    searchService.saveChemicalToFile(new SaveDTO("CCC", "456"));
-    searchService.saveChemicalToFile(new SaveDTO("CCC", "789"));
+    searchService.saveChemicals(new SaveDTO("C", "123"));
+    searchService.saveChemicals(new SaveDTO("CCC", "456"));
+    searchService.saveChemicals(new SaveDTO("CCC", "789"));
 
     List<String> results = searchService.search(createSearchDTO(searchTerm));
     assertEquals(0, results.size());

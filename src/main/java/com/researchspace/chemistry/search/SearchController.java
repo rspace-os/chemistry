@@ -22,13 +22,13 @@ public class SearchController {
 
   @DeleteMapping(value = "/chemistry/clearSearchIndexes")
   public @ResponseBody String clearSearchIndexes() throws IOException {
-    searchService.clearIndexFiles();
+    searchService.clearFiles();
     return "Cleared";
   }
 
   @PostMapping(value = "/chemistry/save")
   public @ResponseBody String save(@Valid @RequestBody SaveDTO saveDTO) throws IOException {
-    searchService.saveChemicalToFile(saveDTO);
+    searchService.saveChemicals(saveDTO);
     return "Saved";
   }
 
