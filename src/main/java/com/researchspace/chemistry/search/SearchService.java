@@ -120,9 +120,9 @@ public class SearchService {
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
     ProcessBuilder builder = new ProcessBuilder();
     builder.command(
-        "obabel", chemicalsMaster.getPath(), "-s" + searchTerm, "-o" + CHEM_FILE_FORMAT, "-xt");
+        "obabel", nonIndexedChemicals.getPath(), "-s" + searchTerm, "-o" + CHEM_FILE_FORMAT, "-xt");
     LOGGER.info(
-        "Searching without index for {} in file: {}", searchTerm, chemicalsMaster.getPath());
+        "Searching without index for {} in file: {}", searchTerm, nonIndexedChemicals.getPath());
     LOGGER.info("output:");
     return commandExecutor.executeCommand(builder);
   }
