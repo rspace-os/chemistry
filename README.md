@@ -1,5 +1,5 @@
 # Chemistry Service
-Back-end component of chemistry functionality in Rspace.
+Back-end component for chemistry in Rspace.
 
 Provides functionality for converting chemical formats, extracting information from molecules and reactions,
 exporting to image and chemical search.
@@ -22,15 +22,12 @@ Run all unit tests: `mvn clean test`
 
 Create a new directory for this docker container (Eg. /home/user/rspace-chemistry-docker) and have the docker-compose.yaml file (from this repo) and the chemistry.jar file (from the release section) in the root of that directory. Once you have these files you can start the container.
 
-
 - You can start the container with: docker compose up -d
 - You can stop the container with: docker compose down
 - You can view the container logs with: docker logs <container name>
 - You can get the container name with: docker ps
 
-
 The container stores some data that needs to be kept on container restarts, therefore there is a docker volume mounted to keep this data persistent.
-
 
 As the container is designed for production use, the 8090 port is binded only to localhost
 
@@ -49,7 +46,8 @@ doesn't exist.
 ## Chemistry Libraries
 The Indigo java library and OpenBabel linux library provide the chemistry functionality of this app.
 
-Indigo is used for conversion, extraction, and image generation, and OpenBabel is used for conversion and search.
+Indigo is used for conversion, extraction, and image generation, and OpenBabel is used for conversion, image generation
+and search.
 
 ## Functionality
 The app provides the following functionality:
@@ -74,6 +72,8 @@ array in one of the following formats:
 - jpg
 - png
 - svg
+
+Image generation is attempted first using the Indigo library, with OpenBabel as a fallback.
 
 ### Search
 The search functionality uses the OpenBabel linux library, which is installed in the Docker image, and if running without
