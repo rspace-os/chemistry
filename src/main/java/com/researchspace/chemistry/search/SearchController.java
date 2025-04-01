@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -36,5 +37,11 @@ public class SearchController {
   public @ResponseBody List<String> search(@Valid @RequestBody SearchDTO searchDTO)
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
     return searchService.search(searchDTO);
+  }
+
+  @GetMapping(value = "/chemistry/index")
+  public @ResponseBody String index() throws IOException, ExecutionException, InterruptedException, TimeoutException {
+    searchService.indexChemicals();
+    return "Indexed";
   }
 }

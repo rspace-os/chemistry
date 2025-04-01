@@ -127,11 +127,13 @@ public class SearchService {
     return commandExecutor.executeCommand(builder);
   }
 
-  public List<String> searchFsFile(String searchTerm)
+  public List<String> searchFastSearchFile(String searchTerm)
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
     ProcessBuilder builder = new ProcessBuilder();
+    // -al 10000000 is a not-well documented switch which sets the limit of fast search candidates to 10m (default is
+    // 4000) to ensure all chemicals are searched
     builder.command(
-        "obabel", fastSearchChemicals.getPath(), "-s" + searchTerm.strip(), "-osmi", "-xt");
+        "obabel", fastSearchChemicals.getPath(), "-s" + searchTerm.strip(), "-osmi", "-xt", "-al 10000000");
     LOGGER.info(
         "Searching with index for {} in file: {}", searchTerm, fastSearchChemicals.getPath());
     return commandExecutor.executeCommand(builder);
@@ -148,7 +150,7 @@ public class SearchService {
       String smiles = getSmilesFromOpenBabel(search.chemicalSearchTerm(), search.chemicalFormat());
       Set<String> hits = new HashSet<>();
       hits.addAll(searchNonIndexedFile(smiles));
-      hits.addAll(searchFsFile(smiles));
+      hits.addAll(searchFastSearchFile(smiles));
       return hits.stream()
           .map(input -> input.contains(" ") ? input.substring(input.lastIndexOf(" ") + 1) : input)
           .collect(Collectors.toList());
