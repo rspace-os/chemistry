@@ -40,7 +40,8 @@ public class SearchController {
   }
 
   @GetMapping(value = "/chemistry/index")
-  public @ResponseBody String index() throws IOException, ExecutionException, InterruptedException, TimeoutException {
+  public @ResponseBody String index()
+      throws IOException, ExecutionException, InterruptedException, TimeoutException {
     searchService.indexChemicals();
     return "Indexed";
   }

@@ -130,10 +130,15 @@ public class SearchService {
   public List<String> searchFastSearchFile(String searchTerm)
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
     ProcessBuilder builder = new ProcessBuilder();
-    // -al 10000000 is a not-well documented switch which sets the limit of fast search candidates to 10m (default is
-    // 4000) to ensure all chemicals are searched
+    // -al 10000000 is a not-well documented switch which sets the limit of fast search candidates
+    // to 10m (default is 4000) to ensure all chemicals are searched
     builder.command(
-        "obabel", fastSearchChemicals.getPath(), "-s" + searchTerm.strip(), "-osmi", "-xt", "-al 10000000");
+        "obabel",
+        fastSearchChemicals.getPath(),
+        "-s" + searchTerm.strip(),
+        "-osmi",
+        "-xt",
+        "-al 10000000");
     LOGGER.info(
         "Searching with index for {} in file: {}", searchTerm, fastSearchChemicals.getPath());
     return commandExecutor.executeCommand(builder);
