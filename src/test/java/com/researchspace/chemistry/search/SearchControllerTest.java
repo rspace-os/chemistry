@@ -136,11 +136,11 @@ public class SearchControllerTest {
 
   @Test
   void whenValidCleanSearchIndexesRequest_thenReturns200() throws Exception {
-    doNothing().when(searchService).clearIndexFiles();
-    verify(searchService, Mockito.never()).clearIndexFiles();
+    doNothing().when(searchService).clearFiles();
+    verify(searchService, Mockito.never()).clearFiles();
 
     mockMvc.perform(delete(CLEAR_SEARCH_INDEXES_ENDPOINT)).andExpect(status().isOk());
 
-    verify(searchService, Mockito.times(1)).clearIndexFiles();
+    verify(searchService, Mockito.times(1)).clearFiles();
   }
 }

@@ -22,13 +22,13 @@ public class SearchController {
 
   @DeleteMapping(value = "/chemistry/clearSearchIndexes")
   public @ResponseBody String clearSearchIndexes() throws IOException {
-    searchService.clearIndexFiles();
+    searchService.clearFiles();
     return "Cleared";
   }
 
   @PostMapping(value = "/chemistry/save")
   public @ResponseBody String save(@Valid @RequestBody SaveDTO saveDTO) throws IOException {
-    searchService.saveChemicalToFile(saveDTO);
+    searchService.saveChemicals(saveDTO);
     return "Saved";
   }
 
@@ -36,5 +36,12 @@ public class SearchController {
   public @ResponseBody List<String> search(@Valid @RequestBody SearchDTO searchDTO)
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
     return searchService.search(searchDTO);
+  }
+
+  @PostMapping(value = "/chemistry/index")
+  public @ResponseBody String index()
+      throws IOException, ExecutionException, InterruptedException, TimeoutException {
+    searchService.indexChemicals();
+    return "Indexed";
   }
 }
