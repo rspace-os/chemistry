@@ -158,6 +158,22 @@ public class SearchIT {
     assertTrue(results.contains("1234"));
   }
 
+  @ParameterizedTest
+  @MethodSource("readSuccessfulSearchFiles")
+  public void whenChemicalIsSavedForSearch_thenFoundByExactMatch(String fileName) throws Exception {
+    String fileContents = chemistryFileContents(fileName);
+    searchService.saveChemicals(new SaveDTO(fileContents, "1234"));
+    List<String> results =
+            searchService.search(new SearchDTO(fileContents, FilenameUtils.getExtension(fileName)));
+    assertEquals(1, results.size());
+    assertTrue(results.contains("1234"));
+  }
+
+  @Test
+  public void whenExactMatchSearching_thenSubstructuresNotFound(){
+
+  }
+
   private static List<String> readSuccessfulSearchFiles() throws Exception {
     List<String> searchFiles =
         List.of(
@@ -181,8 +197,8 @@ public class SearchIT {
 
       return paths
           .filter(
-              file ->
-                  Files.isRegularFile(file) && searchFiles.contains(file.getFileName().toString()))
+                  Files::isRegularFile)
+//                  Files.isRegularFile(file) && searchFiles.contains(file.getFileName().toString()))
           .map(file -> file.getFileName().toString())
           .collect(Collectors.toList());
     }
@@ -248,11 +264,24 @@ public class SearchIT {
 
   @Test
   public void whenFastSearchUpdated_thenNewlyIndexedChemsRemovedFromNonIndexedFile()
-      throws Exception {
+          throws Exception {
     add10ChemicalsFromIndex(0);
     assertEquals(10, Files.readAllLines(NON_INDEXED.toPath()).size());
     searchService.indexChemicals();
     assertEquals(0, Files.readAllLines(NON_INDEXED.toPath()).size());
+  }
+
+  @Test
+  public void whenChemicalSaved_thenExactMatchSucceed() throws Exception {
+    searchService.saveChemicals(new SaveDTO("CCC", "1234"));
+    searchService.saveChemicals(new SaveDTO("CC", "5678"));
+    searchService.saveChemicals(new SaveDTO("CCCC", "91011"));
+
+    SearchDTO exactSearch = new SearchDTO("CCC", SearchType.EXACT);
+    List<String> results = searchService.search(exactSearch);
+
+    assertEquals(1, results.size());
+    assertTrue(results.contains("1234"));
   }
 
   private String chemistryFileContents(String fileName) throws IOException {
@@ -260,7 +289,7 @@ public class SearchIT {
   }
 
   private SearchDTO createSearchDTO(String searchTerm) {
-    return new SearchDTO(searchTerm, "smiles");
+    return new SearchDTO(searchTerm, "smiles", SearchType.EXACT);
   }
 
   @ParameterizedTest
