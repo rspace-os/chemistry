@@ -291,16 +291,17 @@ public class SearchIT {
   }
 
   @Test
-  public void whenChemicalSaved_thenExactMatchSucceed() throws Exception {
-    searchService.saveChemicals(new SaveDTO("CCC", "1234"));
-    searchService.saveChemicals(new SaveDTO("CC", "5678"));
-    searchService.saveChemicals(new SaveDTO("CCCC", "91011"));
+  public void whenSameChemicalSavedTwice_thenBothAreFoundByExactMatchSearch() throws Exception {
+    searchService.saveChemicals(new SaveDTO("CCC", "123"));
+    searchService.saveChemicals(new SaveDTO("CC", "456"));
+    searchService.saveChemicals(new SaveDTO("CCC", "789"));
 
     SearchDTO exactSearch = new SearchDTO("CCC", SearchType.EXACT);
     List<String> results = searchService.search(exactSearch);
 
-    assertEquals(1, results.size());
-    assertTrue(results.contains("1234"));
+    assertEquals(2, results.size());
+    assertTrue(results.contains("123"));
+    assertTrue(results.contains("789"));
   }
 
   private String chemistryFileContents(String fileName) throws IOException {
