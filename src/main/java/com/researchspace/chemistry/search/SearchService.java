@@ -143,7 +143,7 @@ public class SearchService {
         "-al 10000000",
         "-osmi",
         "-xt",
-            "-s" + searchTerm.strip(),
+        "-s" + searchTerm.strip(),
         searchType.equals(SearchType.EXACT) ? "exact" : "");
     LOGGER.info(
         "Searching with index for {} in file: {}", searchTerm, fastSearchChemicals.getPath());

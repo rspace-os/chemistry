@@ -164,7 +164,8 @@ public class SearchIT {
     String fileContents = chemistryFileContents(fileName);
     searchService.saveChemicals(new SaveDTO(fileContents, "1234"));
     List<String> results =
-            searchService.search(new SearchDTO(fileContents, FilenameUtils.getExtension(fileName), SearchType.EXACT));
+        searchService.search(
+            new SearchDTO(fileContents, FilenameUtils.getExtension(fileName), SearchType.EXACT));
     assertEquals(1, results.size());
     assertTrue(results.contains("1234"));
   }
@@ -172,10 +173,12 @@ public class SearchIT {
   @Test
   public void whenExactMatchSearching_thenSubstructuresNotFound() throws Exception {
     add10ChemicalsFromIndex(0);
-    List<String> substructureResults = searchService.search(new SearchDTO("CC", "smiles", SearchType.SUBSTRUCTURE));
+    List<String> substructureResults =
+        searchService.search(new SearchDTO("CC", "smiles", SearchType.SUBSTRUCTURE));
     assertEquals(5, substructureResults.size());
 
-    List<String> exactMatchResults = searchService.search(new SearchDTO("CC", "smiles", SearchType.EXACT));
+    List<String> exactMatchResults =
+        searchService.search(new SearchDTO("CC", "smiles", SearchType.EXACT));
     assertEquals(1, exactMatchResults.size());
   }
 
@@ -217,7 +220,8 @@ public class SearchIT {
 
       return paths
           .filter(
-                  file -> Files.isRegularFile(file) && searchFiles.contains(file.getFileName().toString()))
+              file ->
+                  Files.isRegularFile(file) && searchFiles.contains(file.getFileName().toString()))
           .map(file -> file.getFileName().toString())
           .collect(Collectors.toList());
     }
@@ -283,7 +287,7 @@ public class SearchIT {
 
   @Test
   public void whenFastSearchUpdated_thenNewlyIndexedChemsRemovedFromNonIndexedFile()
-          throws Exception {
+      throws Exception {
     add10ChemicalsFromIndex(0);
     assertEquals(10, Files.readAllLines(NON_INDEXED.toPath()).size());
     searchService.indexChemicals();
