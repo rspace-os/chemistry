@@ -164,14 +164,34 @@ public class SearchIT {
     String fileContents = chemistryFileContents(fileName);
     searchService.saveChemicals(new SaveDTO(fileContents, "1234"));
     List<String> results =
-            searchService.search(new SearchDTO(fileContents, FilenameUtils.getExtension(fileName)));
+            searchService.search(new SearchDTO(fileContents, FilenameUtils.getExtension(fileName), SearchType.EXACT));
     assertEquals(1, results.size());
     assertTrue(results.contains("1234"));
   }
 
   @Test
-  public void whenExactMatchSearching_thenSubstructuresNotFound(){
+  public void whenExactMatchSearching_thenSubstructuresNotFound() throws Exception {
+    add10ChemicalsFromIndex(0);
+    List<String> substructureResults = searchService.search(new SearchDTO("CC", "smiles", SearchType.SUBSTRUCTURE));
+    assertEquals(5, substructureResults.size());
 
+    List<String> exactMatchResults = searchService.search(new SearchDTO("CC", "smiles", SearchType.EXACT));
+    assertEquals(1, exactMatchResults.size());
+  }
+
+  @Test
+  public void whenChemicalsNotIndexed_thenOnlyExactMatchesFound() throws Exception {
+    add10ChemicalsFromIndex(0);
+    List<String> results = searchService.search(new SearchDTO("CC", "smiles", SearchType.EXACT));
+    assertEquals(1, results.size());
+  }
+
+  @Test
+  public void whenChemicalsIndexed_thenOnlyExactMatchesFound() throws Exception {
+    add10ChemicalsFromIndex(0);
+    searchService.indexChemicals();
+    List<String> results = searchService.search(new SearchDTO("CC", "smiles", SearchType.EXACT));
+    assertEquals(1, results.size());
   }
 
   private static List<String> readSuccessfulSearchFiles() throws Exception {
@@ -197,8 +217,7 @@ public class SearchIT {
 
       return paths
           .filter(
-                  Files::isRegularFile)
-//                  Files.isRegularFile(file) && searchFiles.contains(file.getFileName().toString()))
+                  file -> Files.isRegularFile(file) && searchFiles.contains(file.getFileName().toString()))
           .map(file -> file.getFileName().toString())
           .collect(Collectors.toList());
     }
@@ -289,7 +308,7 @@ public class SearchIT {
   }
 
   private SearchDTO createSearchDTO(String searchTerm) {
-    return new SearchDTO(searchTerm, "smiles", SearchType.EXACT);
+    return new SearchDTO(searchTerm, "smiles");
   }
 
   @ParameterizedTest

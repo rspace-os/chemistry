@@ -62,7 +62,7 @@ public class OpenBabelConvertor implements Convertor {
       if (output.isEmpty() || isFailedConversionOutput(output)) {
         return Optional.empty();
       }
-      return Optional.of(output.strip());
+      return Optional.of(output);
     } catch (IOException | ExecutionException | InterruptedException | TimeoutException e) {
       throw new ChemistryException("Problem while converting.", e);
     }
