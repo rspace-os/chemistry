@@ -116,18 +116,23 @@ public class SearchService {
     }
   }
 
-  public List<String> searchNonIndexedFile(String searchTerm)
+  public List<String> searchNonIndexedFile(String searchTerm, SearchType searchType)
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
     ProcessBuilder builder = new ProcessBuilder();
     builder.command(
-        "obabel", nonIndexedChemicals.getPath(), "-s" + searchTerm, "-o" + CHEM_FILE_FORMAT, "-xt");
+        "obabel",
+        nonIndexedChemicals.getPath(),
+        "-o" + CHEM_FILE_FORMAT,
+        "-xt",
+        "-s" + searchTerm,
+        searchType.equals(SearchType.EXACT) ? "exact" : "");
     LOGGER.info(
         "Searching without index for {} in file: {}", searchTerm, nonIndexedChemicals.getPath());
     LOGGER.info("output:");
     return commandExecutor.executeCommand(builder);
   }
 
-  public List<String> searchFastSearchFile(String searchTerm)
+  public List<String> searchFastSearchFile(String searchTerm, SearchType searchType)
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
     ProcessBuilder builder = new ProcessBuilder();
     // -al 10000000 is a not-well documented switch which sets the limit of fast search candidates
@@ -135,10 +140,11 @@ public class SearchService {
     builder.command(
         "obabel",
         fastSearchChemicals.getPath(),
-        "-s" + searchTerm.strip(),
+        "-al 10000000",
         "-osmi",
         "-xt",
-        "-al 10000000");
+        "-s" + searchTerm.strip(),
+        searchType.equals(SearchType.EXACT) ? "exact" : "");
     LOGGER.info(
         "Searching with index for {} in file: {}", searchTerm, fastSearchChemicals.getPath());
     return commandExecutor.executeCommand(builder);
@@ -152,10 +158,11 @@ public class SearchService {
   public List<String> search(SearchDTO search)
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
     if (search.chemicalSearchTerm() != null && !search.chemicalSearchTerm().isEmpty()) {
-      String smiles = getSmilesFromOpenBabel(search.chemicalSearchTerm(), search.chemicalFormat());
+      String smiles =
+          getSmilesFromOpenBabel(search.chemicalSearchTerm(), search.searchTermFormat());
       Set<String> hits = new HashSet<>();
-      hits.addAll(searchNonIndexedFile(smiles));
-      hits.addAll(searchFastSearchFile(smiles));
+      hits.addAll(searchNonIndexedFile(smiles, search.searchType()));
+      hits.addAll(searchFastSearchFile(smiles, search.searchType()));
       return hits.stream()
           .map(input -> input.contains(" ") ? input.substring(input.lastIndexOf(" ") + 1) : input)
           .collect(Collectors.toList());

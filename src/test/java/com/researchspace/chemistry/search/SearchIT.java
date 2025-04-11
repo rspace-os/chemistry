@@ -158,6 +158,45 @@ public class SearchIT {
     assertTrue(results.contains("1234"));
   }
 
+  @ParameterizedTest
+  @MethodSource("readSuccessfulSearchFiles")
+  public void whenChemicalIsSavedForSearch_thenFoundByExactMatch(String fileName) throws Exception {
+    String fileContents = chemistryFileContents(fileName);
+    searchService.saveChemicals(new SaveDTO(fileContents, "1234"));
+    List<String> results =
+        searchService.search(
+            new SearchDTO(fileContents, FilenameUtils.getExtension(fileName), SearchType.EXACT));
+    assertEquals(1, results.size());
+    assertTrue(results.contains("1234"));
+  }
+
+  @Test
+  public void whenExactMatchSearching_thenSubstructuresNotFound() throws Exception {
+    add10ChemicalsFromIndex(0);
+    List<String> substructureResults =
+        searchService.search(new SearchDTO("CC", "smiles", SearchType.SUBSTRUCTURE));
+    assertEquals(5, substructureResults.size());
+
+    List<String> exactMatchResults =
+        searchService.search(new SearchDTO("CC", "smiles", SearchType.EXACT));
+    assertEquals(1, exactMatchResults.size());
+  }
+
+  @Test
+  public void whenChemicalsNotIndexed_thenOnlyExactMatchesFound() throws Exception {
+    add10ChemicalsFromIndex(0);
+    List<String> results = searchService.search(new SearchDTO("CC", "smiles", SearchType.EXACT));
+    assertEquals(1, results.size());
+  }
+
+  @Test
+  public void whenChemicalsIndexed_thenOnlyExactMatchesFound() throws Exception {
+    add10ChemicalsFromIndex(0);
+    searchService.indexChemicals();
+    List<String> results = searchService.search(new SearchDTO("CC", "smiles", SearchType.EXACT));
+    assertEquals(1, results.size());
+  }
+
   private static List<String> readSuccessfulSearchFiles() throws Exception {
     List<String> searchFiles =
         List.of(
@@ -253,6 +292,20 @@ public class SearchIT {
     assertEquals(10, Files.readAllLines(NON_INDEXED.toPath()).size());
     searchService.indexChemicals();
     assertEquals(0, Files.readAllLines(NON_INDEXED.toPath()).size());
+  }
+
+  @Test
+  public void whenSameChemicalSavedTwice_thenBothAreFoundByExactMatchSearch() throws Exception {
+    searchService.saveChemicals(new SaveDTO("CCC", "123"));
+    searchService.saveChemicals(new SaveDTO("CC", "456"));
+    searchService.saveChemicals(new SaveDTO("CCC", "789"));
+
+    SearchDTO exactSearch = new SearchDTO("CCC", SearchType.EXACT);
+    List<String> results = searchService.search(exactSearch);
+
+    assertEquals(2, results.size());
+    assertTrue(results.contains("123"));
+    assertTrue(results.contains("789"));
   }
 
   private String chemistryFileContents(String fileName) throws IOException {
