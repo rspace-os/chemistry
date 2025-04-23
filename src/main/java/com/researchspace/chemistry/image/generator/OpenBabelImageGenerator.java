@@ -30,6 +30,10 @@ public class OpenBabelImageGenerator implements ImageGenerator {
 
   @Override
   public Optional<byte[]> generateImage(ImageDTO imageDTO) {
+    if (imageDTO.inputFormat().equalsIgnoreCase("pdb")) {
+      return readDefaultPdbImage();
+    }
+
     File inFile = null;
     File outFile = null;
     try {
@@ -63,6 +67,17 @@ public class OpenBabelImageGenerator implements ImageGenerator {
       } catch (IOException e) {
         LOGGER.warn("Unable to delete temp files.", e);
       }
+    }
+  }
+
+  private Optional<byte[]> readDefaultPdbImage() {
+    try {
+      byte[] imageBytes =
+          Files.readAllBytes(new File("src/main/resources/default-pdb.png").toPath());
+      return Optional.of(imageBytes);
+    } catch (IOException e) {
+      LOGGER.error("Error reading default PDB image.", e);
+      return Optional.empty();
     }
   }
 

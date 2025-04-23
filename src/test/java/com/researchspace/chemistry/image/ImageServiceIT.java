@@ -1,11 +1,14 @@
 package com.researchspace.chemistry.image;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.researchspace.chemistry.ChemistryException;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import javax.imageio.ImageIO;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -73,5 +76,14 @@ public class ImageServiceIT {
     ChemistryException exception =
         assertThrows(ChemistryException.class, () -> imageService.exportImage(imageDTO));
     assertEquals("Failed to generate image with all available libraries.", exception.getMessage());
+  }
+
+  @Test
+  public void pdbFileConversionReturnsDefaultImage() throws Exception {
+    ImageDTO imageDTO = new ImageDTO("some file contents.", "pdb", "png", "100", "100");
+    byte[] actual = imageService.exportImage(imageDTO);
+    byte[] expected = Files.readAllBytes(Paths.get("src/main/resources/default-pdb.png"));
+
+    assertArrayEquals(expected, actual);
   }
 }
