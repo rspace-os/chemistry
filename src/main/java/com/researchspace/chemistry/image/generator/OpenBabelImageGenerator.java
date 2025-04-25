@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -72,8 +73,7 @@ public class OpenBabelImageGenerator implements ImageGenerator {
 
   private Optional<byte[]> readDefaultPdbImage() {
     try {
-      byte[] imageBytes =
-          Files.readAllBytes(new File("src/main/resources/default-pdb.png").toPath());
+      byte[] imageBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/default-pdb.png"));
       return Optional.of(imageBytes);
     } catch (IOException e) {
       LOGGER.error("Error reading default PDB image.", e);
