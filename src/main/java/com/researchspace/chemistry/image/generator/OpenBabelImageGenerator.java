@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,10 @@ public class OpenBabelImageGenerator implements ImageGenerator {
 
   @Override
   public Optional<byte[]> generateImage(ImageDTO imageDTO) {
+    if (imageDTO.inputFormat().equalsIgnoreCase("pdb")) {
+      return readDefaultPdbImage();
+    }
+
     File inFile = null;
     File outFile = null;
     try {
@@ -63,6 +68,16 @@ public class OpenBabelImageGenerator implements ImageGenerator {
       } catch (IOException e) {
         LOGGER.warn("Unable to delete temp files.", e);
       }
+    }
+  }
+
+  private Optional<byte[]> readDefaultPdbImage() {
+    try {
+      byte[] imageBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/default-pdb.png"));
+      return Optional.of(imageBytes);
+    } catch (IOException e) {
+      LOGGER.error("Error reading default PDB image.", e);
+      return Optional.empty();
     }
   }
 
