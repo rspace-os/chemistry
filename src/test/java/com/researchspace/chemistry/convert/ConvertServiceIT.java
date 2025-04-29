@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -73,7 +72,6 @@ public class ConvertServiceIT {
     assertEquals("Unable to perform conversion to cdxml.", exception.getMessage());
   }
 
-  @Disabled("Some files fail to be converted")
   @ParameterizedTest
   @MethodSource("readFilesForSmilesConversion")
   public void whenValidChemicalFile_thenConversionToSmilesIsSuccessful(Conversion conversion) {
@@ -82,7 +80,6 @@ public class ConvertServiceIT {
     assertTrue(result.contains("C"));
   }
 
-  @Disabled("Some files fail to be converted")
   @ParameterizedTest
   @MethodSource("readFilesForCdxmlConversion")
   public void whenValidChemicalFile_thenConversionToCdxmlIsSuccessful(Conversion conversion) {
@@ -91,7 +88,6 @@ public class ConvertServiceIT {
     assertTrue(result.contains(VALID_CDXML_START));
   }
 
-  @Disabled("Some files fail to be converted")
   @ParameterizedTest
   @MethodSource("readFilesForKetConversion")
   public void whenValidChemicalFile_thenConversionToKetIsSuccessful(Conversion conversion) {
@@ -102,21 +98,43 @@ public class ConvertServiceIT {
   }
 
   private static List<Conversion> readFilesForCdxmlConversion() throws Exception {
-    return readFiles("cdxml");
+    List<String> excludes =
+        List.of(
+            "4qwn_GitHub_muffintoad_protein-structure-prediction.pdb",
+            "amineNotAmide_GitHub_chemaxon_jchem-examples.rxn");
+    return readFiles("cdxml", excludes);
   }
 
   private static List<Conversion> readFilesForSmilesConversion() throws Exception {
-    return readFiles("smi");
+    List<String> excludes =
+        List.of(
+            "4qwn_GitHub_muffintoad_protein-structure-prediction.pdb",
+            "benzene_GitHub_SEDenmarkLab_molli.mol2",
+            "amineNotAmide_GitHub_chemaxon_jchem-examples.rxn");
+    return readFiles("smi", excludes);
   }
 
   private static List<Conversion> readFilesForKetConversion() throws Exception {
-    return readFiles("ket");
+    List<String> excludes =
+        List.of(
+            "ala_phe_ala.pdb",
+            "dendrobine_GitHub_SEDenmarkLab_molli.mol2",
+            "4qwn_GitHub_muffintoad_protein-structure-prediction.pdb",
+            "benzene_GitHub_SEDenmarkLab_molli.mol2",
+            "adrenaline.mol2",
+            "dimethyl_sulfone_GitHub_SEDenmarkLab_molli.mol2",
+            "mjs_GitHub_AspirinCode_GENiPPI.pdb",
+            "amineNotAmide_GitHub_chemaxon_jchem-examples.rxn");
+    return readFiles("ket", excludes);
   }
 
-  private static List<Conversion> readFiles(String outputFormat) throws Exception {
+  private static List<Conversion> readFiles(String outputFormat, List<String> excludes)
+      throws Exception {
     try (Stream<Path> paths = Files.walk(Paths.get("src/test/resources/chemistry_file_examples"))) {
       return paths
-          .filter(Files::isRegularFile)
+          .filter(
+              file ->
+                  Files.isRegularFile(file) && !excludes.contains(file.getFileName().toString()))
           .map(
               path -> {
                 try {
