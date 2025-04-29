@@ -22,11 +22,11 @@ public class IndigoExtractorTest {
   public void whenValidChemical_thenPropertiesExtracted() {
     String chemical = "CC";
     ExtractionResult result = indigoExtractor.extract(chemical);
-    assertEquals(2, result.getMolecules().get(0).getAtomCount());
-    assertEquals(1, result.getMolecules().get(0).getBondCount());
-    assertEquals("C2 H6", result.getMolecules().get(0).getFormula());
-    assertEquals(30.05, result.getMolecules().get(0).getExactMass());
-    assertEquals(30.07, result.getMolecules().get(0).getMass());
+    assertEquals(2, result.getMoleculeInfo().get(0).getAtomCount());
+    assertEquals(1, result.getMoleculeInfo().get(0).getBondCount());
+    assertEquals("C2 H6", result.getMoleculeInfo().get(0).getFormula());
+    assertEquals(30.05, result.getMoleculeInfo().get(0).getExactMass());
+    assertEquals(30.07, result.getMoleculeInfo().get(0).getMass());
     assertFalse(result.isReaction());
   }
 
@@ -35,7 +35,7 @@ public class IndigoExtractorTest {
     String reaction = "(C(=O)O).(OCC)>>(C(=O)OCC).(O)";
     ExtractionResult result = indigoExtractor.extract(reaction);
     assertTrue(result.isReaction());
-    assertTrue(result.getMolecules().isEmpty());
+    assertTrue(result.getMoleculeInfo().isEmpty());
   }
 
   @ParameterizedTest

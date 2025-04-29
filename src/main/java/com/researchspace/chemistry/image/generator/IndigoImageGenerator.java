@@ -58,6 +58,7 @@ public class IndigoImageGenerator implements ImageGenerator {
       IndigoObject indigoObject = indigoFacade.load(indigo, imageDTO.input());
       indigo.setOption("render-output-format", "png");
       indigo.setOption("render-margins", 10, 10);
+      indigo.setOption("render-image-size", generateImageSize(imageDTO));
       indigo.setOption("render-coloring", true);
       renderer.renderToFile(indigoObject, tmpPng.getPath());
 

@@ -1,10 +1,10 @@
 package com.researchspace.chemistry.image;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
 public record ImageDTO(
-    @NotNull String input,
-    @NotNull String inputFormat,
-    @NotNull String outputFormat,
+    @NotBlank String input,
+    @NotBlank String inputFormat,
+    @NotBlank String outputFormat,
     String width,
     String height) {}

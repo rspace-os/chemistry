@@ -52,7 +52,6 @@ public class IndigoExtractor implements Extractor {
             .build());
 
     result.setMoleculeInfo(molecules);
-    result.setMolecules(molecules);
     return result;
   }
 
