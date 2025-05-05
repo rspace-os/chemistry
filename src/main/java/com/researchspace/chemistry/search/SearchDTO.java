@@ -1,9 +1,9 @@
 package com.researchspace.chemistry.search;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
 public record SearchDTO(
-    @NotNull String chemicalSearchTerm, String searchTermFormat, SearchType searchType) {
+    @NotBlank String chemicalSearchTerm, String searchTermFormat, SearchType searchType) {
 
   public SearchDTO(String chemicalSearchTerm) {
     this(chemicalSearchTerm, "", SearchType.SUBSTRUCTURE);

@@ -1,14 +1,17 @@
 package com.researchspace.chemistry.extract;
 
 public class Molecule {
-  private final int atomCount;
-  private final int bondCount;
-  private final int formalCharge;
-  private final double exactMass;
-  private final double mass;
-  private final String formula;
-  private final String name;
-  private final MoleculeRole role;
+  private int atomCount;
+  private int bondCount;
+  private int formalCharge;
+  private double exactMass;
+  private double mass;
+  private String formula;
+  private String name;
+  private MoleculeRole role;
+
+  // used by Jackson
+  public Molecule() {}
 
   public Molecule(Builder builder) {
     this.atomCount = builder.atomCount;

@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 
 public class ExtractionResult {
   private List<Molecule> moleculeInfo = new ArrayList<>();
-  private List<Molecule> molecules = new ArrayList<>();
   private String formula;
   private boolean isReaction;
 
@@ -47,11 +46,7 @@ public class ExtractionResult {
   }
 
   public List<Molecule> getMolecules() {
-    return molecules;
-  }
-
-  public void setMolecules(List<Molecule> molecules) {
-    this.molecules = molecules;
+    return filterByRole(MoleculeRole.MOLECULE);
   }
 
   private List<Molecule> filterByRole(MoleculeRole role) {

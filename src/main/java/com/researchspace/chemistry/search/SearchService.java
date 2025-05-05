@@ -125,7 +125,7 @@ public class SearchService {
         "-o" + CHEM_FILE_FORMAT,
         "-xt",
         "-s" + searchTerm,
-        searchType.equals(SearchType.EXACT) ? "exact" : "");
+        calculateSearchType(searchType));
     LOGGER.info(
         "Searching without index for {} in file: {}", searchTerm, nonIndexedChemicals.getPath());
     LOGGER.info("output:");
@@ -144,7 +144,7 @@ public class SearchService {
         "-osmi",
         "-xt",
         "-s" + searchTerm.strip(),
-        searchType.equals(SearchType.EXACT) ? "exact" : "");
+        calculateSearchType(searchType));
     LOGGER.info(
         "Searching with index for {} in file: {}", searchTerm, fastSearchChemicals.getPath());
     return commandExecutor.executeCommand(builder);
@@ -183,6 +183,18 @@ public class SearchService {
     return openBabelConvertor
         .convert(new ConvertDTO(initialSmiles, "smiles", "smiles"))
         .orElse(initialSmiles);
+  }
+
+  private String calculateSearchType(SearchType searchType) {
+    if (searchType == null) {
+      return "";
+    }
+
+    if (SearchType.EXACT.equals(searchType)) {
+      return "exact";
+    }
+
+    return "";
   }
 
   /***

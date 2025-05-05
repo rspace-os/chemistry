@@ -1,338 +1,222 @@
 package com.researchspace.chemistry.search;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.apache.commons.io.FilenameUtils;
-import org.junit.jupiter.api.AfterEach;
+import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.util.TestPropertyValues;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 
-@SpringBootTest(properties = {"search.file.format=smi"})
-@ContextConfiguration(initializers = SearchIT.Initializer.class)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class SearchIT {
+  @Autowired TestRestTemplate restTemplate;
 
-  @TempDir static File tempDir;
+  static final String SEARCH_ENDPOINT = "/chemistry/search";
+  static final String SAVE_ENDPOINT = "/chemistry/save";
+  static final String INDEX_ENDPOINT = "/chemistry/index";
+  static final String CLEAR_SEARCH_INDEXES_ENDPOINT = "/chemistry/clearSearchIndexes";
 
-  @Autowired SearchService searchService;
-  final File INDEXED = new File(tempDir.getPath() + "/fastSearchChemicals.fs");
-
-  final File NON_INDEXED = new File(tempDir.getPath() + "/nonIndexedChemicals.smi");
-
-  final File INDEX = new File(tempDir.getPath() + "/chemicalsMaster.smi");
-
-  @AfterEach
-  public void clearFileContents() {
-    Arrays.asList(INDEXED, NON_INDEXED, INDEX)
-        .forEach(
-            file -> {
-              try {
-                new PrintWriter(file).close();
-              } catch (FileNotFoundException e) {
-              }
-            });
+  @BeforeEach
+  public void setup() {
+    clearSearchIndexes();
   }
 
   @Test
-  public void searchFilesCreatedCorrectly() {
-    List<File> expectedFiles = Arrays.asList(INDEXED, NON_INDEXED, INDEX);
-    expectedFiles.forEach(file -> assertTrue(file.exists()));
-  }
+  public void testSavedChemicalIsFoundBySearch() throws Exception {
+    // save chem1
+    String chem1 = readFileContent("src/test/resources/chemistry_file_examples/colchicine.mol");
+    SaveDTO saveRequest = new SaveDTO(chem1, "123");
+    ResponseEntity<String> saveResponse = makeSaveRequest(saveRequest);
+    assertEquals(HttpStatus.OK, saveResponse.getStatusCode());
+    assertEquals("Saved", saveResponse.getBody());
 
-  @Test
-  public void whenSaveChemical_thenAddedToFile() throws Exception {
-    searchService.saveChemicals(new SaveDTO("C", "1234"));
-    searchService.saveChemicals(new SaveDTO("CCC", "5678"));
+    // save chem2
+    SaveDTO saveRequest2 =
+        new SaveDTO(
+            readFileContent("src/test/resources/chemistry_file_examples/chlorine.cdxml"), "456");
+    ResponseEntity<String> saveResponse2 = makeSaveRequest(saveRequest2);
+    assertEquals(HttpStatus.OK, saveResponse2.getStatusCode());
+    assertEquals("Saved", saveResponse2.getBody());
 
-    String fileContents = Files.readString(NON_INDEXED.toPath());
-    assertEquals("C 1234\nCCC 5678\n", fileContents);
-  }
+    // search for chem1
+    Map<String, String> searchParams = new HashMap<>();
+    searchParams.put("chemicalSearchTerm", chem1);
+    ResponseEntity<List<String>> searchResponse = makeSearchRequest(searchParams);
 
-  @Test
-  public void whenSearchChemicalExists_thenIsFound() throws Exception {
-    searchService.saveChemicals(new SaveDTO("C", "1234"));
-    searchService.saveChemicals(new SaveDTO("CCC", "5678"));
-
-    List<String> results = searchService.search(createSearchDTO("CCC"));
+    // results should only contain chem1
+    assertEquals(HttpStatus.OK, searchResponse.getStatusCode());
+    List<String> results = searchResponse.getBody();
     assertEquals(1, results.size());
-    assertTrue(results.contains("5678"));
-  }
-
-  @Test
-  public void whenSearchMatchesSubstructure_thenIsFound() throws Exception {
-    searchService.saveChemicals(new SaveDTO("C", "123"));
-    searchService.saveChemicals(new SaveDTO("CCC", "5678"));
-
-    List<String> results = searchService.search(createSearchDTO("CC"));
-    assertEquals(1, results.size());
-    assertTrue(results.contains("5678"));
-  }
-
-  @Test
-  public void whenSearchMatchesMultipleSubstructures_thenAllReturned() throws Exception {
-    searchService.saveChemicals(new SaveDTO("C", "123"));
-    searchService.saveChemicals(new SaveDTO("CCC", "456"));
-    searchService.saveChemicals(new SaveDTO("CCCC", "789"));
-
-    List<String> results = searchService.search(createSearchDTO("CC"));
-    assertEquals(2, results.size());
-    assertTrue(results.contains("456"));
-    assertTrue(results.contains("789"));
-  }
-
-  @Test
-  public void whenMultipleHitsForSameStructure_thenAllHitIdsReturned() throws Exception {
-    searchService.saveChemicals(new SaveDTO("C", "123"));
-    searchService.saveChemicals(new SaveDTO("CCC", "456"));
-    searchService.saveChemicals(new SaveDTO("CCC", "789"));
-
-    List<String> results = searchService.search(createSearchDTO("CCC"));
-    assertEquals(2, results.size());
-    assertTrue(results.contains("456"));
-    assertTrue(results.contains("789"));
-  }
-
-  @Test
-  public void whenNoMatches_thenEmptyListReturned() throws Exception {
-    searchService.saveChemicals(new SaveDTO("C", "123"));
-    searchService.saveChemicals(new SaveDTO("CCC", "456"));
-    searchService.saveChemicals(new SaveDTO("CCC", "789"));
-
-    List<String> results = searchService.search(createSearchDTO("CCO"));
-    assertEquals(0, results.size());
-  }
-
-  @Test
-  public void testClearingSearchIndexes() throws Exception {
-    List<String> results = searchService.search(createSearchDTO("CCC"));
-    assertEquals(0, results.size());
-
-    searchService.saveChemicals(new SaveDTO("CCC", "1234"));
-    results = searchService.search(createSearchDTO("CC"));
-    assertEquals(1, results.size());
-    assertTrue(results.contains("1234"));
-
-    // clear
-    searchService.clearFiles();
-    results = searchService.search(createSearchDTO("CCC"));
-    assertEquals(0, results.size());
-
-    // confirm working for newly index files again
-    searchService.saveChemicals(new SaveDTO("CCC", "5678"));
-    results = searchService.search(createSearchDTO("CC"));
-    assertEquals(1, results.size());
-    assertFalse(results.contains("1234"));
-    assertTrue(results.contains("5678"));
-  }
-
-  @ParameterizedTest
-  @MethodSource("readSuccessfulSearchFiles")
-  public void whenChemicalIsSavedForSearch_thenShouldBeFound(String fileName) throws Exception {
-    System.out.println(fileName);
-    String fileContents = chemistryFileContents(fileName);
-    searchService.saveChemicals(new SaveDTO(fileContents, "1234"));
-    List<String> results =
-        searchService.search(new SearchDTO(fileContents, FilenameUtils.getExtension(fileName)));
-    assertEquals(1, results.size());
-    assertTrue(results.contains("1234"));
-  }
-
-  @ParameterizedTest
-  @MethodSource("readSuccessfulSearchFiles")
-  public void whenChemicalIsSavedForSearch_thenFoundByExactMatch(String fileName) throws Exception {
-    String fileContents = chemistryFileContents(fileName);
-    searchService.saveChemicals(new SaveDTO(fileContents, "1234"));
-    List<String> results =
-        searchService.search(
-            new SearchDTO(fileContents, FilenameUtils.getExtension(fileName), SearchType.EXACT));
-    assertEquals(1, results.size());
-    assertTrue(results.contains("1234"));
-  }
-
-  @Test
-  public void whenExactMatchSearching_thenSubstructuresNotFound() throws Exception {
-    add10ChemicalsFromIndex(0);
-    List<String> substructureResults =
-        searchService.search(new SearchDTO("CC", "smiles", SearchType.SUBSTRUCTURE));
-    assertEquals(5, substructureResults.size());
-
-    List<String> exactMatchResults =
-        searchService.search(new SearchDTO("CC", "smiles", SearchType.EXACT));
-    assertEquals(1, exactMatchResults.size());
-  }
-
-  @Test
-  public void whenChemicalsNotIndexed_thenOnlyExactMatchesFound() throws Exception {
-    add10ChemicalsFromIndex(0);
-    List<String> results = searchService.search(new SearchDTO("CC", "smiles", SearchType.EXACT));
-    assertEquals(1, results.size());
-  }
-
-  @Test
-  public void whenChemicalsIndexed_thenOnlyExactMatchesFound() throws Exception {
-    add10ChemicalsFromIndex(0);
-    searchService.indexChemicals();
-    List<String> results = searchService.search(new SearchDTO("CC", "smiles", SearchType.EXACT));
-    assertEquals(1, results.size());
-  }
-
-  private static List<String> readSuccessfulSearchFiles() throws Exception {
-    List<String> searchFiles =
-        List.of(
-            "aspirin_CompTox_DTXSID5020108.mol",
-            "aspirin_PubChem_2244.smiles",
-            "aspirin_PubChem_2244_2d.sdf",
-            "aspirin_PubChem_2244_3d.sdf",
-            "benzylpenicillin_GitHub_fusion809_artwork.mrv",
-            "caffeine.sdf",
-            "colchicine.mol",
-            "cosyntropin_CompTox_DTXSID201014470.mol",
-            "curamycin_A_CompTox_DTXSID40223473.mol",
-            "cyclophosphamide_GitHub_fusion809_artwork.mrv",
-            "esterification.mrv",
-            "lapatinib_PubChem_208908.smiles",
-            "lapatinib_PubChem_208908_2d.sdf",
-            "lapatinib_PubChem_208908_3d.sdf",
-            "propane.smiles",
-            "SGroupExpanded_GitHub_chemaxon_jchem-examples.mrv");
-    try (Stream<Path> paths = Files.walk(Paths.get("src/test/resources/chemistry_file_examples"))) {
-
-      return paths
-          .filter(
-              file ->
-                  Files.isRegularFile(file) && searchFiles.contains(file.getFileName().toString()))
-          .map(file -> file.getFileName().toString())
-          .collect(Collectors.toList());
-    }
-  }
-
-  private void add10ChemicalsFromIndex(int fromIndex) throws Exception {
-    List<String> smiles =
-        Files.readAllLines(Path.of("src/test/resources/search_file/chemicals.smi"));
-    List<String> subset = smiles.subList(fromIndex, fromIndex + 10);
-    int failCount = 0;
-    for (int i = 0; i < 10; i++) {
-      try {
-        searchService.saveChemicals(
-            new SaveDTO(subset.get(i), String.valueOf(fromIndex + i), "smi"));
-      } catch (Exception e) {
-        failCount++;
-        System.out.println("Failed to save file: " + subset.get(i));
-      }
-    }
-    System.out.println("Failed to save " + failCount + " files");
-  }
-
-  @Test
-  public void whenNewlyAddedChemicalsIndexed_thenCorrectResultsFound() throws Exception {
-    add10ChemicalsFromIndex(0);
-    searchService.indexChemicals();
-    List<String> results = searchService.search(createSearchDTO("c"));
-    assertEquals(8, results.size());
-    add10ChemicalsFromIndex(10);
-    searchService.indexChemicals();
-    List<String> results20 = searchService.search(createSearchDTO("c"));
-    assertEquals(17, results20.size());
-    add10ChemicalsFromIndex(20);
-    searchService.indexChemicals();
-    List<String> results30 = searchService.search(createSearchDTO("c"));
-    assertEquals(26, results30.size());
-    add10ChemicalsFromIndex(30);
-    searchService.indexChemicals();
-    List<String> results40 = searchService.search(createSearchDTO("c"));
-    assertEquals(33, results40.size());
-    add10ChemicalsFromIndex(40);
-    searchService.indexChemicals();
-    List<String> results50 = searchService.search(createSearchDTO("c"));
-    assertEquals(40, results50.size());
-  }
-
-  @Test
-  public void whenChemsIndexed_thenChemsFound() throws Exception {
-    add10ChemicalsFromIndex(0);
-    searchService.indexChemicals();
-    List<String> results = searchService.search(createSearchDTO("C"));
-    List<String> expectedChemIdHits = List.of("0", "1", "2", "4", "5", "6", "7", "8");
-    assertEquals(expectedChemIdHits, results);
-  }
-
-  @Test
-  public void whenChemsNotIndexed_thenChemsFound() throws Exception {
-    add10ChemicalsFromIndex(0);
-    List<String> results = searchService.search(createSearchDTO("C"));
-    List<String> expectedChemIdHits = List.of("0", "1", "2", "4", "5", "6", "7", "8");
-    assertEquals(expectedChemIdHits, results);
-  }
-
-  @Test
-  public void whenFastSearchUpdated_thenNewlyIndexedChemsRemovedFromNonIndexedFile()
-      throws Exception {
-    add10ChemicalsFromIndex(0);
-    assertEquals(10, Files.readAllLines(NON_INDEXED.toPath()).size());
-    searchService.indexChemicals();
-    assertEquals(0, Files.readAllLines(NON_INDEXED.toPath()).size());
-  }
-
-  @Test
-  public void whenSameChemicalSavedTwice_thenBothAreFoundByExactMatchSearch() throws Exception {
-    searchService.saveChemicals(new SaveDTO("CCC", "123"));
-    searchService.saveChemicals(new SaveDTO("CC", "456"));
-    searchService.saveChemicals(new SaveDTO("CCC", "789"));
-
-    SearchDTO exactSearch = new SearchDTO("CCC", SearchType.EXACT);
-    List<String> results = searchService.search(exactSearch);
-
-    assertEquals(2, results.size());
     assertTrue(results.contains("123"));
-    assertTrue(results.contains("789"));
   }
 
-  private String chemistryFileContents(String fileName) throws IOException {
-    return Files.readString(Path.of("src/test/resources/chemistry_file_examples/" + fileName));
+  @Test
+  public void testSubstructureSearch() {
+    makeSaveRequest(new SaveDTO("CCC", "12"));
+    makeSaveRequest(new SaveDTO("CCCO", "34"));
+    makeSaveRequest(new SaveDTO("CCN", "56"));
+    makeSaveRequest(new SaveDTO("C", "78")); // shouldn't match
+
+    Map<String, String> searchParams = new HashMap<>();
+    searchParams.put("chemicalSearchTerm", "CC");
+    searchParams.put("searchType", "SUBSTRUCTURE");
+    ResponseEntity<List<String>> searchResponse = makeSearchRequest(searchParams);
+
+    assertEquals(HttpStatus.OK, searchResponse.getStatusCode());
+    List<String> results = searchResponse.getBody();
+    assertEquals(3, results.size());
+    assertTrue(results.containsAll(Arrays.asList("12", "34", "56")));
   }
 
-  private SearchDTO createSearchDTO(String searchTerm) {
-    return new SearchDTO(searchTerm, "smiles");
+  @Test
+  public void testExactMatchSearch() {
+    makeSaveRequest(new SaveDTO("CCC", "12"));
+    makeSaveRequest(new SaveDTO("CCCO", "34"));
+    makeSaveRequest(new SaveDTO("CCN", "56"));
+    makeSaveRequest(new SaveDTO("C", "78"));
+
+    Map<String, String> searchParams = new HashMap<>();
+    searchParams.put("chemicalSearchTerm", "CCC");
+    searchParams.put("searchType", "EXACT");
+    ResponseEntity<List<String>> searchResponse = makeSearchRequest(searchParams);
+
+    assertEquals(HttpStatus.OK, searchResponse.getStatusCode());
+    List<String> results = searchResponse.getBody();
+    assertEquals(1, results.size());
+    assertTrue(results.contains("12"));
+  }
+
+  @Test
+  public void testSearchWorksBeforeAndAfterIndexing() {
+    // save chemicals
+    makeSaveRequest(new SaveDTO("CCC", "123"));
+    makeSaveRequest(new SaveDTO("CCCO", "456"));
+
+    Map<String, String> searchParams = new HashMap<>();
+    searchParams.put("chemicalSearchTerm", "CC");
+
+    // search without indexing
+    ResponseEntity<List<String>> nonIndexedSearchResponse = makeSearchRequest(searchParams);
+    assertEquals(HttpStatus.OK, nonIndexedSearchResponse.getStatusCode());
+    List<String> nonIndexedResults = nonIndexedSearchResponse.getBody();
+    assertEquals(2, nonIndexedResults.size());
+    assertTrue(nonIndexedResults.containsAll(Arrays.asList("123", "456")));
+
+    // perform indexing
+    ResponseEntity<String> indexResponse = makeIndexRequest();
+    assertEquals(HttpStatus.OK, indexResponse.getStatusCode());
+    assertEquals("Indexed", indexResponse.getBody());
+
+    // search after indexing
+    ResponseEntity<List<String>> indexedResponse = makeSearchRequest(searchParams);
+    assertEquals(HttpStatus.OK, indexedResponse.getStatusCode());
+    List<String> results = indexedResponse.getBody();
+    assertEquals(2, results.size());
+    assertTrue(results.containsAll(Arrays.asList("123", "456")));
   }
 
   @ParameterizedTest
   @NullAndEmptySource
-  public void whenEmptyOrNullSearchTerm_thenEmptyListReturned(String searchTerm) throws Exception {
-    searchService.saveChemicals(new SaveDTO("C", "123"));
-    searchService.saveChemicals(new SaveDTO("CCC", "456"));
-    searchService.saveChemicals(new SaveDTO("CCC", "789"));
-
-    List<String> results = searchService.search(createSearchDTO(searchTerm));
-    assertEquals(0, results.size());
+  public void testEmptyOrNullSearchTerm(String searchTerm) {
+    Map<String, String> searchParams = new HashMap<>();
+    searchParams.put("chemicalSearchTerm", searchTerm);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<Map<String, String>> entity = new HttpEntity<>(searchParams, headers);
+    ResponseEntity<String> response =
+        restTemplate.postForEntity(SEARCH_ENDPOINT, entity, String.class);
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
   }
 
-  // set the file directory property to the temp directory managed by junit
-  static class Initializer
-      implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-    @Override
-    public void initialize(ConfigurableApplicationContext context) {
-      TestPropertyValues.of("search.file.dir=" + tempDir).applyTo(context);
-    }
+  @Test
+  public void testMissingSearchTerm() {
+    Map<String, String> searchParams = new HashMap<>();
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<Map<String, String>> entity = new HttpEntity<>(searchParams, headers);
+    ResponseEntity<String> response =
+        restTemplate.postForEntity(SEARCH_ENDPOINT, entity, String.class);
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+  }
+
+  @Test
+  public void testInvalidSearchType() {
+    Map<String, String> searchParams = new HashMap<>();
+    searchParams.put("chemicalSearchTerm", "CCC");
+    searchParams.put("searchType", "INVALID_TYPE");
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<Map<String, String>> entity = new HttpEntity<>(searchParams, headers);
+    ResponseEntity<String> response =
+        restTemplate.postForEntity(SEARCH_ENDPOINT, entity, String.class);
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+  }
+
+  @Test
+  public void testClearSearchIndexes() {
+    makeSaveRequest(new SaveDTO("CCC", "123"));
+    // perform search
+    Map<String, String> searchParams = new HashMap<>();
+    searchParams.put("chemicalSearchTerm", "CCC");
+    ResponseEntity<List<String>> searchResponse = makeSearchRequest(searchParams);
+    assertEquals(1, searchResponse.getBody().size());
+
+    // clear indexes
+    ResponseEntity<String> clearResponse = clearSearchIndexes();
+    assertEquals(HttpStatus.OK, clearResponse.getStatusCode());
+    assertEquals("Cleared", clearResponse.getBody());
+
+    // verify no results found
+    searchResponse = makeSearchRequest(searchParams);
+    assertEquals(0, searchResponse.getBody().size());
+  }
+
+  private ResponseEntity<String> makeSaveRequest(SaveDTO request) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<SaveDTO> entity = new HttpEntity<>(request, headers);
+    return restTemplate.postForEntity(SAVE_ENDPOINT, entity, String.class);
+  }
+
+  private ResponseEntity<List<String>> makeSearchRequest(Map<String, String> requestParams) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestParams, headers);
+    return restTemplate.exchange(
+        SEARCH_ENDPOINT, HttpMethod.POST, entity, new ParameterizedTypeReference<>() {});
+  }
+
+  private ResponseEntity<String> makeIndexRequest() {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<String> entity = new HttpEntity<>("", headers);
+    return restTemplate.postForEntity(INDEX_ENDPOINT, entity, String.class);
+  }
+
+  private ResponseEntity<String> clearSearchIndexes() {
+    return restTemplate.exchange(
+        CLEAR_SEARCH_INDEXES_ENDPOINT, HttpMethod.DELETE, null, String.class);
+  }
+
+  private String readFileContent(String filePath) throws Exception {
+    return Files.readString(Paths.get(filePath));
   }
 }

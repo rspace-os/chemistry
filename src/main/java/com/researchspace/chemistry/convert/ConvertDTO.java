@@ -1,8 +1,9 @@
 package com.researchspace.chemistry.convert;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
-public record ConvertDTO(@NotNull String input, String inputFormat, @NotNull String outputFormat) {
+public record ConvertDTO(
+    @NotBlank String input, String inputFormat, @NotBlank String outputFormat) {
   public ConvertDTO(String input, String outputFormat) {
     this(input, "", outputFormat);
   }
