@@ -31,6 +31,8 @@ The container stores some data that needs to be kept on container restarts, ther
 
 As the container is designed for production use, the 8090 port is binded only to localhost
 
+To update the Microservice version, stop the container, replace the .jar file with the new release, and start up the container again.
+
 #### Docker (Build image manually - not recommended for production use )
 From the root of the repo, run: `docker build -t chemistry .` to create the image named `chemistry` locally. 
 
