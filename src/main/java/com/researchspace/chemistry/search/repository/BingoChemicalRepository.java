@@ -96,7 +96,7 @@ public class BingoChemicalRepository implements ChemicalRepository {
 
   public List<String> searchSubstructure(String smiles) throws IOException {
     try {
-      String sql = "SELECT chemical_id FROM chemicals WHERE molecule @ (?, 'sub') = 1";
+      String sql = "SELECT chemical_id FROM chemicals WHERE molecule @ (?, '')::bingo.sub";
       return jdbcTemplate.queryForList(sql, String.class, smiles);
     } catch (Exception e) {
       throw new IOException("Failed to perform substructure search in Bingo repository", e);
