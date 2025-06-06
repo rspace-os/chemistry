@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  postgres-bingo:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chemistry-postgres-bingo
+    environment:
+      POSTGRES_DB: chemistry
+      POSTGRES_USER: chemistry_user
+      POSTGRES_PASSWORD: chemistry_password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - chemistry-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chemistry_user -d chemistry"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Optional: pgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: chemistry-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: fraser.macinnes@researchspace.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "8081:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - chemistry-network
+    depends_on:
+      postgres-bingo:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  chemistry-network:
+    driver: bridge

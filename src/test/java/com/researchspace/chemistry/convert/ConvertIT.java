@@ -24,7 +24,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+    webEnvironment = WebEnvironment.RANDOM_PORT,
+    properties = {"search.repository=openbabel"},
+    classes = {com.researchspace.chemistry.ChemistryApplication.class})
 public class ConvertIT {
 
   @Autowired private TestRestTemplate restTemplate;

@@ -23,14 +23,17 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest(properties = {"search.file.format=smi"})
 @ContextConfiguration(initializers = SearchServiceIT.Initializer.class)
+@TestPropertySource(properties = "search.repository=openbabel")
 public class SearchServiceIT {
 
   @TempDir static File tempDir;

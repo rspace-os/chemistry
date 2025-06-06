@@ -41,7 +41,7 @@ public class SearchController {
   @PostMapping(value = "/chemistry/index")
   public @ResponseBody String index()
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
-    searchService.indexChemicals();
+    searchService.initFiles();
     return "Indexed";
   }
 }
