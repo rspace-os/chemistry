@@ -28,10 +28,8 @@ public class BingoChemicalRepository implements ChemicalRepository {
   @Override
   public void saveChemical(String smiles, String chemicalId) throws IOException {
     try {
-      String sql =
-          "INSERT INTO chemicals (smiles, chemical_id, molecule) VALUES (?, ?, ?) "
-              + "ON CONFLICT (chemical_id) DO UPDATE SET "
-              + "smiles = EXCLUDED.smiles, molecule = EXCLUDED.molecule";
+String sql =
+          "INSERT INTO chemicals (smiles, chemical_id, molecule) VALUES (?, ?, ?)";
       jdbcTemplate.update(sql, smiles, chemicalId, smiles);
       LOGGER.debug("Saved chemical with ID: {} to Bingo repository", chemicalId);
     } catch (Exception e) {
@@ -54,7 +52,7 @@ public class BingoChemicalRepository implements ChemicalRepository {
   public void initialize() throws IOException {
     try {
       // Create Bingo extension if not exists
-//      jdbcTemplate.execute("CREATE EXTENSION IF NOT EXISTS bingo");
+      jdbcTemplate.execute("CREATE EXTENSION IF NOT EXISTS bingo");
 
       // Create table with Bingo molecule column
       String createTableSql =
@@ -76,7 +74,7 @@ public class BingoChemicalRepository implements ChemicalRepository {
 
       // Create Bingo molecular index for fast chemical searches
       String createBingoIndexSql =
-          "CREATE INDEX IF NOT EXISTS idx_chemicals_molecule_bingo ON chemicals using bingo_idx (molecule bingo.molecule);";
+          "CREATE INDEX IF NOT EXISTS idx_chemicals_molecule_bingo ON chemicals using bingo_idx (smiles bingo.molecule);";
       jdbcTemplate.execute(createBingoIndexSql);
 
       LOGGER.info("Bingo chemical repository initialized with molecular indexing");
