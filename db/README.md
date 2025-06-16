@@ -1,15 +1,21 @@
-# Chemistry Database with Bingo Cartridge
+# PostgreSQL with Bingo Extension
 
-This directory contains everything needed to spin up a PostgreSQL database with the EPAM Bingo cartridge for chemical searches.
+This directory contains the necessary files to spin up a PostgreSQL database with the Bingo chemical cartridge installed.
 
-## 🚀 Quick Start
+## What is Bingo?
 
-### Prerequisites
-- Docker and Docker Compose installed
-- At least 2GB free disk space
-- Ports 5432 and 8081 available
+Bingo is a PostgreSQL cartridge for chemical structure storage and searching. It allows for:
+- Exact structure search
+- Substructure search
+- Similarity search
+- Molecular formula search
+- and more
 
-### Start the Database
+## How to Use
+
+### Starting the Database
+
+To start the PostgreSQL database:
 
 ```bash
 cd db
@@ -17,146 +23,110 @@ docker-compose up -d
 ```
 
 This will:
-- Build a PostgreSQL 15 container with Bingo extension
-- Create the `chemistry` database
-- Install and configure the Bingo cartridge
-- Insert sample chemical data for testing
-- Start pgAdmin for database management
+1. Start a PostgreSQL container
+2. Initialize the database with the necessary schema for chemical storage
 
-### Check Status
+### Installing the Bingo Extension
+
+The Bingo extension needs to be installed manually after the container is running:
 
 ```bash
-docker-compose ps
-docker-compose logs postgres-bingo
+# Install required packages in the container
+docker exec -it bingo-postgres apt-get update
+docker exec -it bingo-postgres apt-get install -y build-essential cmake libpq-dev postgresql-server-dev-14 git wget unzip
+
+# Clone and build Bingo
+docker exec -it bingo-postgres bash -c "cd /tmp && git clone https://github.com/epam/Indigo.git && cd Indigo && mkdir build && cd build && cmake .. -DBUILD_INDIGO=ON -DBUILD_BINGO=ON -DBUILD_BINGO_POSTGRES=ON -DBINGO_PG_VERSION=14 && make -j$(nproc) && make install"
+
+# Create the Bingo extension in the database
+docker exec -it bingo-postgres psql -U postgres -d bingo -c "CREATE EXTENSION IF NOT EXISTS bingo;"
+
+# Update the molecule column to use bingo.molecule type
+docker exec -it bingo-postgres psql -U postgres -d bingo -c "ALTER TABLE chemicals ALTER COLUMN molecule TYPE bingo.molecule USING molecule::bingo.molecule;"
+
+# Create Bingo molecular index
+docker exec -it bingo-postgres psql -U postgres -d bingo -c "CREATE INDEX IF NOT EXISTS idx_chemicals_molecule_bingo ON chemicals using bingo_idx (molecule);"
 ```
 
-### Stop the Database
+### Connecting to the Database
+
+You can connect to the database using the following credentials:
+
+- Host: localhost
+- Port: 5433
+- Database: bingo
+- Username: postgres
+- Password: postgres
+
+Example using psql:
 
 ```bash
+psql -h localhost -p 5433 -U postgres -d bingo
+```
+
+### Database Schema
+
+The database is initialized with a `chemicals` table that has the following structure:
+
+```sql
+CREATE TABLE chemicals (
+    id SERIAL PRIMARY KEY,
+    smiles VARCHAR(2000) NOT NULL,
+    chemical_id VARCHAR(255) NOT NULL UNIQUE,
+    molecule bingo.molecule,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Example Queries
+
+Here are some example queries you can run against the database:
+
+#### Exact Structure Search
+```sql
+SELECT chemical_id FROM chemicals WHERE molecule @ ('C1CCCCC1', 'exact') = 1;
+```
+
+#### Substructure Search
+```sql
+SELECT chemical_id FROM chemicals WHERE molecule @ ('C1CCCCC1', '')::bingo.sub;
+```
+
+#### Similarity Search
+```sql
+SELECT chemical_id FROM chemicals WHERE bingo.sim(molecule, 'C1CCCCC1') > 0.8;
+```
+
+## Testing the Setup
+
+A test script is provided to verify that the PostgreSQL container with the Bingo extension is working correctly:
+
+```bash
+cd db
+docker-compose up -d  # Start the container if not already running
+chmod +x test-bingo.sh  # Make sure the script is executable
+./test-bingo.sh
+```
+
+This script will:
+1. Wait for PostgreSQL to be ready
+2. Verify that the Bingo extension is installed
+3. Insert a test chemical (cyclohexane) into the database
+4. Perform an exact structure search
+5. Perform a substructure search
+
+## Stopping the Database
+
+To stop the database:
+
+```bash
+cd db
 docker-compose down
 ```
 
-To remove all data:
+To stop the database and remove all data:
+
 ```bash
+cd db
 docker-compose down -v
 ```
-
-## 📊 Connection Details
-
-### PostgreSQL Database
-- **Host:** localhost
-- **Port:** 5432  
-- **Database:** chemistry
-- **Username:** chemistry_user
-- **Password:** chemistry_password
-
-### pgAdmin Web Interface
-- **URL:** http://localhost:8080
-- **Email:** admin@chemistry.local
-- **Password:** admin
-
-## 🧪 Testing Bingo Functionality
-
-Once the database is running, you can test Bingo searches:
-
-```sql
--- Connect to the database
-psql -h localhost -U chemistry_user -d chemistry
-
--- Test exact search
-SELECT chemical_id, smiles 
-FROM chemicals 
-WHERE molecule @ ('CCO', 'exact') = 1;
-
--- Test substructure search  
-SELECT chemical_id, smiles 
-FROM chemicals 
-WHERE molecule @ ('CC', 'sub') = 1;
-
--- Test similarity search
-SELECT chemical_id, smiles, bingo.sim(molecule, 'CCO') as similarity
-FROM chemicals 
-WHERE bingo.sim(molecule, 'CCO') > 0.7;
-```
-
-## 🏗️ Architecture
-
-### Files Structure
-```
-db/
-├── Dockerfile                    # PostgreSQL + Bingo image
-├── docker-compose.yml           # Service orchestration
-├── init-scripts/
-│   ├── 01-init-bingo.sql       # Install Bingo extension
-│   ├── 02-create-schema.sql    # Create tables and indexes
-│   └── 03-sample-data.sql      # Insert test data
-└── README.md                   # This file
-```
-
-### Sample Data
-The database includes these test molecules:
-- Ethanol (CCO)
-- Propane (CCC) 
-- Propanol (CCCO)
-- Isopropanol (CC(C)O)
-- Benzene (C1=CC=CC=C1)
-- Aspirin (CC(=O)OC1=CC=CC=C1C(=O)O)
-- Caffeine (CN1C=NC2=C1C(=O)N(C(=O)N2C)C)
-- Testosterone (CC12CCC3C(C1CCC2O)CCC4=CC(=O)CCC34C)
-
-## ⚙️ Application Configuration
-
-To use this database with the chemistry application, update `application.properties`:
-
-```properties
-# Use Bingo for both search engine and repository
-search.engine=bingo
-search.repository=bingo
-
-# Database connection
-spring.datasource.url=jdbc:postgresql://localhost:5432/chemistry
-spring.datasource.username=chemistry_user
-spring.datasource.password=chemistry_password
-```
-
-## 🔧 Troubleshooting
-
-### Port Conflicts
-If ports 5432 or 8080 are in use, modify `docker-compose.yml`:
-```yaml
-ports:
-  - "5433:5432"  # Use different external port
-```
-
-### Bingo Extension Issues
-Check the logs for Bingo installation:
-```bash
-docker-compose logs postgres-bingo | grep -i bingo
-```
-
-### Container Health
-Monitor container health:
-```bash
-docker-compose ps
-docker exec chemistry-postgres-bingo pg_isready -U chemistry_user -d chemistry
-```
-
-### Reset Database
-To start fresh:
-```bash
-docker-compose down -v
-docker-compose up -d
-```
-
-## 📚 Additional Resources
-
-- [EPAM Bingo Documentation](https://lifescience.opensource.epam.com/bingo/)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
-- [Docker Compose Reference](https://docs.docker.com/compose/)
-
-## 🎯 Performance Tips
-
-- The Bingo molecular index (`bingo_idx`) provides fast chemical searches
-- For production, consider tuning PostgreSQL settings in the Dockerfile
-- Monitor query performance with `EXPLAIN ANALYZE`
-- Use connection pooling for high-throughput applications

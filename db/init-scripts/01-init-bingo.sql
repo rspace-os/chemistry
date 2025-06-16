@@ -1,15 +1,24 @@
--- Initialize Bingo for chemistry database
--- This script runs the Bingo installation SQL directly
+-- Create chemicals table without Bingo extension for now
+CREATE TABLE IF NOT EXISTS chemicals (
+    id SERIAL PRIMARY KEY,
+    smiles VARCHAR(2000) NOT NULL,
+    chemical_id VARCHAR(255) NOT NULL UNIQUE,
+    molecule TEXT, -- Using TEXT instead of bingo.molecule until extension is installed
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-\echo 'Setting up Bingo...'
+-- Create index on chemical_id for faster lookups
+CREATE INDEX IF NOT EXISTS idx_chemicals_chemical_id ON chemicals(chemical_id);
 
--- Connect to the chemistry database
-\c chemistry;
+-- Grant permissions to postgres user
+GRANT ALL PRIVILEGES ON TABLE chemicals TO postgres;
+GRANT USAGE, SELECT ON SEQUENCE chemicals_id_seq TO postgres;
 
--- Run the Bingo installation script
-\i /usr/share/postgresql/15/extension/bingo--1.29.0.sql
-
--- Alternative verification - check if bingo schema exists
-\dn bingo
-
-\echo 'Bingo installed successfully!'
+-- Create a function to check if Bingo is installed
+CREATE OR REPLACE FUNCTION is_bingo_installed() RETURNS BOOLEAN AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1 FROM pg_extension WHERE extname = 'bingo'
+    );
+END;
+$$ LANGUAGE plpgsql;
