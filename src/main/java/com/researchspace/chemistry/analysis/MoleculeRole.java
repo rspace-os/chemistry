@@ -1,8 +1,8 @@
-package com.researchspace.chemistry.extract;
+package com.researchspace.chemistry.analysis;
 
 public enum MoleculeRole {
   MOLECULE,
   REACTANT,
   PRODUCT,
-  AGENT
+  AGENT,
 }
