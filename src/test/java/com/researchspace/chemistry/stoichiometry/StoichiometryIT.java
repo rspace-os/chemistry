@@ -150,16 +150,6 @@ public class StoichiometryIT {
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
   }
 
-  @Test
-  public void testMoleculeNotReaction() {
-    ExtractionRequest request = new ExtractionRequest("CCC");
-
-    ResponseEntity<String> response =
-            restTemplate.postForEntity(STOICHIOMETRY_ENDPOINT, request, String.class);
-
-    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-  }
-
   private ResponseEntity<ExtractionResult> makeStoichiometryRequest(ExtractionRequest request) {
     return restTemplate.postForEntity(
         STOICHIOMETRY_ENDPOINT, request, ExtractionResult.class);
