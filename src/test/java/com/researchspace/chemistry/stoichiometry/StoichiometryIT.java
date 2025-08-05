@@ -36,76 +36,82 @@ public class StoichiometryIT {
 
   @Test
   public void testStoichiometryAnalysisFromSmiles() {
-    // Arrange
     String reaction = "(C(=O)O).(OCC)>>(C(=O)OCC).(O)";
     ExtractionRequest request = new ExtractionRequest(reaction);
     
-    // Act
     ResponseEntity<ExtractionResult> response = makeStoichiometryRequest(request);
     
-    // Assert
     assertTrue(response.getStatusCode().is2xxSuccessful());
     assertNotNull(response.getBody());
     
     ExtractionResult result = response.getBody();
     assertTrue(result.isReaction());
-    
-    // Verify reactants
+
     List<Molecule> reactants = result.getReactants();
-    assertFalse(reactants.isEmpty());
-    assertEquals(MoleculeRole.REACTANT, reactants.get(0).getRole());
+    assertEquals(2, reactants.size());
+
+    Molecule firstReactant = reactants.get(0);
+    assertEquals(MoleculeRole.REACTANT, firstReactant.getRole());
+    assertEquals(3, firstReactant.getAtomCount());
+    assertEquals(2, firstReactant.getBondCount());
+    assertEquals("C O2", firstReactant.getFormula());
     
-    // Verify products
     List<Molecule> products = result.getProducts();
-    assertFalse(products.isEmpty());
-    assertEquals(MoleculeRole.PRODUCT, products.get(0).getRole());
+    assertEquals(2, products.size());
+
+    Molecule product = products.get(0);
+    assertEquals(MoleculeRole.PRODUCT, product.getRole());
+    assertEquals(5, product.getAtomCount());
+    assertEquals(4, product.getBondCount());
+    assertEquals("C3 O2", product.getFormula());
   }
 
   @Test
   public void testStoichiometryAnalysisFromRxnFile() throws IOException {
-    // Arrange
     String filePath = "src/test/resources/chemistry_file_examples/methane-combustion.rxn";
     String fileContent = readFileContent(filePath);
     ExtractionRequest request = new ExtractionRequest(fileContent);
     
-    // Act
     ResponseEntity<ExtractionResult> response = makeStoichiometryRequest(request);
     
-    // Assert
     assertTrue(response.getStatusCode().is2xxSuccessful());
     assertNotNull(response.getBody());
     
     ExtractionResult result = response.getBody();
     assertTrue(result.isReaction());
-    assertFalse(result.getMoleculeInfo().isEmpty());
-    
-    // Verify that we have both reactants and products
-    assertFalse(result.getReactants().isEmpty());
-    assertFalse(result.getProducts().isEmpty());
+
+    List<Molecule> reactants = result.getReactants();
+    assertEquals(3, reactants.size());
+
+    Molecule firstReactant = reactants.get(0);
+    assertEquals(MoleculeRole.REACTANT, firstReactant.getRole());
+    assertEquals(1, firstReactant.getAtomCount());
+    assertEquals(0, firstReactant.getBondCount());
+    assertEquals("C H4", firstReactant.getFormula());
+
+    List<Molecule> products = result.getProducts();
+    assertEquals(3, products.size());
+
+    Molecule product = products.get(0);
+    assertEquals(MoleculeRole.PRODUCT, product.getRole());
+    assertEquals(3, product.getAtomCount());
+    assertEquals(2, product.getBondCount());
+    assertEquals("C O2", product.getFormula());
   }
 
   @Test
   public void testStoichiometryAnalysisWithNonReaction() {
-    // Arrange
     String nonReaction = "CCC";
     ExtractionRequest request = new ExtractionRequest(nonReaction);
     
-    // Act
     ResponseEntity<ExtractionResult> response = makeStoichiometryRequest(request);
-    
-    // Assert
-    assertTrue(response.getStatusCode().is2xxSuccessful());
-    assertNotNull(response.getBody());
-    
-    ExtractionResult result = response.getBody();
-    assertFalse(result.isReaction());
-    assertTrue(result.getMoleculeInfo().isEmpty());
+
+    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
   }
 
   @ParameterizedTest
   @NullAndEmptySource
   public void testNullOrEmptyInput(String inputValue) {
-    // Arrange
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     
@@ -114,41 +120,43 @@ public class StoichiometryIT {
     
     HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
     
-    // Act
-    ResponseEntity<String> response = 
+    ResponseEntity<String> response =
         restTemplate.postForEntity(STOICHIOMETRY_ENDPOINT, request, String.class);
     
-    // Assert
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
   }
 
   @Test
   public void testMissingInputParameter() {
-    // Arrange
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     
     String requestBody = "{}";
     HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
     
-    // Act
-    ResponseEntity<String> response = 
+    ResponseEntity<String> response =
         restTemplate.postForEntity(STOICHIOMETRY_ENDPOINT, request, String.class);
     
-    // Assert
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
   }
 
   @Test
   public void testInvalidChemicalStructure() {
-    // Arrange
     ExtractionRequest request = new ExtractionRequest("invalid");
     
-    // Act
-    ResponseEntity<String> response = 
+    ResponseEntity<String> response =
         restTemplate.postForEntity(STOICHIOMETRY_ENDPOINT, request, String.class);
     
-    // Assert
+    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+  }
+
+  @Test
+  public void testMoleculeNotReaction() {
+    ExtractionRequest request = new ExtractionRequest("CCC");
+
+    ResponseEntity<String> response =
+            restTemplate.postForEntity(STOICHIOMETRY_ENDPOINT, request, String.class);
+
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
   }
 

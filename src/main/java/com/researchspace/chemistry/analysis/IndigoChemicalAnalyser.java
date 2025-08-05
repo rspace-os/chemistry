@@ -3,6 +3,7 @@ package com.researchspace.chemistry.analysis;
 import com.epam.indigo.Indigo;
 import com.epam.indigo.IndigoException;
 import com.epam.indigo.IndigoObject;
+import com.researchspace.chemistry.ChemistryException;
 import com.researchspace.chemistry.extract.ExtractionResult;
 import com.researchspace.chemistry.util.IndigoFacade;
 import java.util.ArrayList;
@@ -10,44 +11,38 @@ import java.util.List;
 import java.util.function.Supplier;
 import org.springframework.stereotype.Service;
 
-/**
- * Implementation of the ChemicalAnalyzer interface using the Indigo library.
- * This class provides functionality for both extraction and stoichiometry analysis.
- */
 @Service
-public class IndigoChemicalAnalyzer implements ChemicalAnalyzer {
+public class IndigoChemicalAnalyser implements ChemicalAnalyser {
 
   private final IndigoFacade indigoFacade;
 
-  public IndigoChemicalAnalyzer(IndigoFacade indigoFacade) {
+  public IndigoChemicalAnalyser(IndigoFacade indigoFacade) {
     this.indigoFacade = indigoFacade;
   }
 
   @Override
-  public ExtractionResult analyze(String input, AnalysisType analysisType) {
+  public ExtractionResult analyse(String input, boolean groupMoleculesByRole) {
     IndigoObject inputChemical = indigoFacade.load(new Indigo(), input);
 
-    return switch (analysisType) {
-      case EXTRACTION -> extractInformation(inputChemical);
-      case STOICHIOMETRY -> analyzeStoichiometry(inputChemical);
-    };
+    return groupMoleculesByRole ?
+      groupMoleculesByRole(inputChemical) :
+      analyseMolecules(inputChemical);
   }
 
-  /**
-   * Extracts information about the chemical structure.
-   * This method is used for the EXTRACTION analysis type.
-   *
-   * @param inputChemical The chemical structure to analyze
-   * @return The extraction result
+  /***
+   * Analyses the input chemical to extract its formula, mass, and other properties.
+   * Each molecule will have the generic role of MOLECULE.
+   * If the input is a reaction, it will return the formula only.
+   * @param inputChemical the IndigoObject representing the chemical input
+   * @return ExtractionResult containing the chemical information
    */
-  private ExtractionResult extractInformation(IndigoObject inputChemical) {
+  private ExtractionResult analyseMolecules(IndigoObject inputChemical) {
     boolean isReaction = tryStringOperation(inputChemical::dbgInternalType).contains("reaction");
     String formula = tryStringOperation(inputChemical::grossFormula);
     ExtractionResult result = new ExtractionResult();
     result.setFormula(formula);
     result.setReaction(isReaction);
 
-    // for reactions, only the formula is displayed in extraction mode
     if (isReaction) {
       return result;
     }
@@ -72,40 +67,34 @@ public class IndigoChemicalAnalyzer implements ChemicalAnalyzer {
     return result;
   }
 
-  /**
-   * Analyzes the stoichiometry of a chemical reaction.
-   * This method is used for the STOICHIOMETRY analysis type.
-   *
-   * @param inputChemical The chemical structure to analyze
-   * @return The stoichiometry analysis result
+  /***
+   * Groups molecules in a reaction by their roles (reactant, product, agent).
+   * Extracts the formula, mass, and other properties for each molecule.
+   * @param inputChemical the IndigoObject representing the chemical input
+   * @return ExtractionResult containing the grouped molecules and their properties
    */
-  private ExtractionResult analyzeStoichiometry(IndigoObject inputChemical) {
+  private ExtractionResult groupMoleculesByRole(IndigoObject inputChemical) {
     boolean isReaction = tryStringOperation(inputChemical::dbgInternalType).contains("reaction");
     String formula = tryStringOperation(inputChemical::grossFormula);
     ExtractionResult result = new ExtractionResult();
     result.setFormula(formula);
     result.setReaction(isReaction);
-
-    if (!isReaction) {
-      // Stoichiometry analysis only makes sense for reactions
-      return result;
-    }
-
     List<Molecule> molecules = new ArrayList<>();
+
+    if(!isReaction) {
+      throw new ChemistryException("For Stoichiometry analysis, the input must be a reaction.");
+    }
     
-    // Extract reactants
     inputChemical.iterateReactants().forEach(molecule -> {
       Molecule reactant = extractMoleculeInfo(molecule, MoleculeRole.REACTANT);
       molecules.add(reactant);
     });
     
-    // Extract products
     inputChemical.iterateProducts().forEach(molecule -> {
       Molecule product = extractMoleculeInfo(molecule, MoleculeRole.PRODUCT);
       molecules.add(product);
     });
     
-    // Extract catalysts/agents
     inputChemical.iterateCatalysts().forEach(molecule -> {
       Molecule agent = extractMoleculeInfo(molecule, MoleculeRole.AGENT);
       molecules.add(agent);

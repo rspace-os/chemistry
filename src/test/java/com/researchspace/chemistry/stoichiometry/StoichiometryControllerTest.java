@@ -1,12 +1,13 @@
 package com.researchspace.chemistry.stoichiometry;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.researchspace.chemistry.analysis.ChemicalAnalysisService;
+import com.researchspace.chemistry.analysis.ChemicalAnalyser;
 import com.researchspace.chemistry.extract.ExtractionResult;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,14 +20,14 @@ import org.springframework.test.web.servlet.MockMvc;
 public class StoichiometryControllerTest {
   @Autowired private MockMvc mockMvc;
 
-  @MockitoBean private ChemicalAnalysisService analysisService;
+  @MockitoBean private ChemicalAnalyser chemicalAnalyser;
 
   private static final String ENDPOINT = "/chemistry/stoichiometry";
 
   @Test
   void whenValidRequest_thenReturns200AndResult() throws Exception {
     ExtractionResult result = new ExtractionResult();
-    when(analysisService.analyzeStoichiometry(any())).thenReturn(result);
+    when(chemicalAnalyser.analyse(any(), eq(true))).thenReturn(result);
     String validRequestBody =
         """
             {
