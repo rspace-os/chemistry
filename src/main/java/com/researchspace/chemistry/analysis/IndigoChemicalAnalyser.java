@@ -48,21 +48,7 @@ public class IndigoChemicalAnalyser implements ChemicalAnalyser {
     }
 
     List<Molecule> molecules = new ArrayList<>();
-    int atomCount = tryIntOperation(inputChemical::countAtoms);
-    int bondCount = tryIntOperation(inputChemical::countBonds);
-    double mass = tryDoubleOperation(inputChemical::mostAbundantMass);
-    double molWeight = tryDoubleOperation(inputChemical::molecularWeight);
-
-    molecules.add(
-        new Molecule.Builder()
-            .atomCount(atomCount)
-            .bondCount(bondCount)
-            .exactMass(mass)
-            .formula(formula)
-            .mass(molWeight)
-            .role(MoleculeRole.MOLECULE)
-            .build());
-
+    molecules.add(extractMoleculeInfo(inputChemical, MoleculeRole.MOLECULE));
     result.setMoleculeInfo(molecules);
     return result;
   }
