@@ -1,4 +1,4 @@
-package com.researchspace.chemistry.extract;
+package com.researchspace.chemistry.analysis;
 
 public class Molecule {
   private int atomCount;
@@ -9,6 +9,7 @@ public class Molecule {
   private String formula;
   private String name;
   private MoleculeRole role;
+  private String smiles;
 
   // used by Jackson
   public Molecule() {}
@@ -22,6 +23,7 @@ public class Molecule {
     this.formula = builder.formula;
     this.name = builder.name;
     this.role = builder.role;
+    this.smiles = builder.smiles;
   }
 
   public MoleculeRole getRole() {
@@ -56,6 +58,10 @@ public class Molecule {
     return name;
   }
 
+  public String getSmiles() {
+    return smiles;
+  }
+
   public static class Builder {
     private int atomCount;
     private int bondCount;
@@ -65,6 +71,7 @@ public class Molecule {
     private String formula;
     private String name = "";
     private MoleculeRole role;
+    private String smiles;
 
     public Builder atomCount(int atomCount) {
       this.atomCount = atomCount;
@@ -103,6 +110,11 @@ public class Molecule {
 
     public Builder role(MoleculeRole role) {
       this.role = role;
+      return this;
+    }
+
+    public Builder smiles(String smiles) {
+      this.smiles = smiles;
       return this;
     }
 
