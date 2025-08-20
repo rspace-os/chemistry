@@ -18,7 +18,11 @@ Run all unit and integration tests: `mvn clean verify`
 Run all unit tests: `mvn clean test`
 
 ## Run
-#### Docker (docker-compose.yaml - production ready)
+
+**Running RSpace Docker? There's no need to look at the steps here. The RSpace Docker repo comes with chemistry already setup and part of RSpace. Just follow the steps at https://github.com/rspace-os/rspace-docker**
+
+
+#### Docker (docker-compose.yaml)
 
 Create a new directory for this docker container (Eg. /home/user/rspace-chemistry-docker) and have the docker-compose.yaml file (from this repo) and the chemistry.jar file (from the release section) in the root of that directory. Once you have these files you can start the container.
 

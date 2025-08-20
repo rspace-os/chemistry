@@ -1,4 +1,4 @@
-package com.researchspace.chemistry.extract;
+package com.researchspace.chemistry.stoichiometry;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.researchspace.chemistry.analysis.ChemicalAnalyser;
+import com.researchspace.chemistry.extract.ExtractionResult;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -15,22 +16,22 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(ExtractController.class)
-public class ExtractControllerTest {
+@WebMvcTest(StoichiometryController.class)
+public class StoichiometryControllerTest {
   @Autowired private MockMvc mockMvc;
 
   @MockitoBean private ChemicalAnalyser chemicalAnalyser;
 
-  private static final String ENDPOINT = "/chemistry/extract";
+  private static final String ENDPOINT = "/chemistry/stoichiometry";
 
   @Test
   void whenValidRequest_thenReturns200AndResult() throws Exception {
     ExtractionResult result = new ExtractionResult();
-    when(chemicalAnalyser.analyse(any(), eq(false))).thenReturn(result);
+    when(chemicalAnalyser.analyse(any(), eq(true))).thenReturn(result);
     String validRequestBody =
         """
             {
-                "input": "CCC"
+                "input": "(C(=O)O).(OCC)>>(C(=O)OCC).(O)"
             }
             """;
 

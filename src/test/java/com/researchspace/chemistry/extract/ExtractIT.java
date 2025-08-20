@@ -10,6 +10,9 @@ import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.researchspace.chemistry.analysis.Molecule;
+import com.researchspace.chemistry.analysis.MoleculeRole;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
