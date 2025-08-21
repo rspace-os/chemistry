@@ -2,11 +2,13 @@
 
 # Test script for PostgreSQL with Bingo extension
 
+set -euo pipefail
+
 echo "Testing PostgreSQL database..."
 
 # Wait for PostgreSQL to be ready
 echo "Waiting for PostgreSQL to be ready..."
-until docker exec bingo-postgres pg_isready -U postgres > /dev/null 2>&1; do
+until docker exec bingo-postgres pg_isready -U postgres -d bingo > /dev/null 2>&1; do
   echo "PostgreSQL is unavailable - sleeping"
   sleep 1
 done
@@ -15,34 +17,22 @@ echo "PostgreSQL is up and running!"
 
 # Check if Bingo extension is installed
 echo "Checking if Bingo extension is installed..."
-BINGO_INSTALLED=$(docker exec bingo-postgres psql -U postgres -d bingo -t -c "SELECT COUNT(*) FROM pg_extension WHERE extname = 'bingo';")
+BINGO_INSTALLED=$(docker exec bingo-postgres psql -U postgres -d bingo -t -A -c "SELECT COUNT(*) FROM pg_extension WHERE extname = 'bingo';" | tr -d '\r' | xargs)
 
-if [ "$BINGO_INSTALLED" -eq "0" ]; then
-  echo "Bingo extension is not installed."
-  echo "Please install the Bingo extension by following the instructions in the README.md file:"
-  echo "1. Install required packages"
-  echo "2. Clone and build Bingo"
-  echo "3. Create the Bingo extension"
-  echo "4. Update the molecule column type"
-  echo "5. Create the Bingo molecular index"
-  echo ""
-  echo "For basic testing without Bingo extension:"
-
-  # Insert a test chemical without Bingo functionality
-  echo "Inserting test chemical (without Bingo functionality)..."
-  docker exec bingo-postgres psql -U postgres -d bingo -c "INSERT INTO chemicals (smiles, chemical_id, molecule) VALUES ('C1CCCCC1', 'cyclohexane', 'C1CCCCC1');"
-
-  # Basic query without Bingo functionality
-  echo "Testing basic query (without Bingo functionality)..."
-  docker exec bingo-postgres psql -U postgres -d bingo -c "SELECT * FROM chemicals WHERE chemical_id = 'cyclohexane';"
-
-  echo "Tests completed (limited functionality without Bingo extension)."
+if [ "$BINGO_INSTALLED" = "0" ]; then
+  echo "Bingo extension is not installed (unexpected for this image)."
+  echo "Diagnostics:"
+  docker exec bingo-postgres ls -la /usr/lib/postgresql/14/lib | grep -i bingo || true
+  docker exec bingo-postgres ls -la /usr/share/postgresql/14/extension | grep -i bingo || true
+  echo "Container logs may have details about CREATE EXTENSION failure."
+  echo "Exiting with non-zero status."
+  exit 1
 else
   echo "Bingo extension is installed."
 
   # Insert a test chemical
   echo "Inserting test chemical..."
-  docker exec bingo-postgres psql -U postgres -d bingo -c "INSERT INTO chemicals (smiles, chemical_id, molecule) VALUES ('C1CCCCC1', 'cyclohexane', 'C1CCCCC1');"
+  docker exec bingo-postgres psql -U postgres -d bingo -c "INSERT INTO chemicals (smiles, chemical_id, molecule) VALUES ('C1CCCCC1', 'cyclohexane', 'C1CCCCC1'::bingo.molecule) ON CONFLICT (chemical_id) DO NOTHING;"
 
   # Test exact structure search
   echo "Testing exact structure search..."

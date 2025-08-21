@@ -2,7 +2,6 @@ package com.researchspace.chemistry.search.repository;
 
 import com.researchspace.chemistry.search.SearchType;
 import com.researchspace.chemistry.util.CommandExecutor;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;

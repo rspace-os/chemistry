@@ -43,11 +43,15 @@ public class IndigoChemicalAnalyserTest {
   public void whenAnalyzingStoichiometry_withNonReaction_thenThrowException() {
     String nonReaction = "CCC";
 
-    ChemistryException exception = assertThrows(ChemistryException.class, () -> {
-      chemicalAnalyser.analyse(nonReaction, GROUP_BY_ROLE);
-    });
+    ChemistryException exception =
+        assertThrows(
+            ChemistryException.class,
+            () -> {
+              chemicalAnalyser.analyse(nonReaction, GROUP_BY_ROLE);
+            });
 
-    assertEquals("For Stoichiometry analysis, the input must be a reaction.", exception.getMessage());
+    assertEquals(
+        "For Stoichiometry analysis, the input must be a reaction.", exception.getMessage());
   }
 
   @Test
@@ -58,7 +62,7 @@ public class IndigoChemicalAnalyserTest {
 
     List<Molecule> molecules = result.getMoleculeInfo();
     assertFalse(molecules.isEmpty());
-    
+
     Molecule molecule = molecules.get(0);
     assertTrue(molecule.getAtomCount() >= 0);
     assertTrue(molecule.getBondCount() >= 0);

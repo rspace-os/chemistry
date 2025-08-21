@@ -1,6 +1,6 @@
 # PostgreSQL with Bingo Extension
 
-This directory contains the necessary files to spin up a PostgreSQL database with the Bingo chemical cartridge installed.
+This directory contains a clean, reproducible setup to spin up PostgreSQL 14 with the EPAM Bingo chemical cartridge installed and ready to use. The Bingo extension is built from source in a multi-stage Docker build to avoid architecture/ABI mismatches.
 
 ## What is Bingo?
 
@@ -11,46 +11,30 @@ Bingo is a PostgreSQL cartridge for chemical structure storage and searching. It
 - Molecular formula search
 - and more
 
-## How to Use
+## How it works (at a glance)
+- A multi-stage Dockerfile compiles Indigo/Bingo against PostgreSQL 14 headers.
+- Only the built artifacts (.so, .control, .sql) are copied into a lean postgres:14 runtime image.
+- Initialization SQL in init-scripts/ creates the Bingo extension, ensures the chemicals table uses bingo.molecule, and adds indexes.
+- docker-compose builds and runs this image.
 
-### Starting the Database
+## Prerequisites
+- Docker and Docker Compose
+- If you’re on Apple Silicon and encounter qemu issues, set `platform: linux/amd64` in docker-compose (comment included in file).
 
-To start the PostgreSQL database:
+## Start the database
 
 ```bash
 cd db
-docker-compose up -d
+# Build and run
+docker compose up -d
 ```
 
 This will:
-1. Start a PostgreSQL container
-2. Initialize the database with the necessary schema for chemical storage
+1. Build a custom image with Bingo installed
+2. Start a PostgreSQL container on port 5433
+3. Initialize the database, create the Bingo extension, and set up the schema
 
-### Installing the Bingo Extension
-
-The Bingo extension needs to be installed manually after the container is running:
-
-```bash
-# Install required packages in the container
-docker exec -it bingo-postgres apt-get update
-docker exec -it bingo-postgres apt-get install -y build-essential cmake libpq-dev postgresql-server-dev-14 git wget unzip
-
-# Clone and build Bingo
-docker exec -it bingo-postgres bash -c "cd /tmp && git clone https://github.com/epam/Indigo.git && cd Indigo && mkdir build && cd build && cmake .. -DBUILD_INDIGO=ON -DBUILD_BINGO=ON -DBUILD_BINGO_POSTGRES=ON -DBINGO_PG_VERSION=14 && make -j$(nproc) && make install"
-
-# Create the Bingo extension in the database
-docker exec -it bingo-postgres psql -U postgres -d bingo -c "CREATE EXTENSION IF NOT EXISTS bingo;"
-
-# Update the molecule column to use bingo.molecule type
-docker exec -it bingo-postgres psql -U postgres -d bingo -c "ALTER TABLE chemicals ALTER COLUMN molecule TYPE bingo.molecule USING molecule::bingo.molecule;"
-
-# Create Bingo molecular index
-docker exec -it bingo-postgres psql -U postgres -d bingo -c "CREATE INDEX IF NOT EXISTS idx_chemicals_molecule_bingo ON chemicals using bingo_idx (molecule);"
-```
-
-### Connecting to the Database
-
-You can connect to the database using the following credentials:
+## Connect to the database
 
 - Host: localhost
 - Port: 5433
@@ -59,15 +43,13 @@ You can connect to the database using the following credentials:
 - Password: postgres
 
 Example using psql:
-
 ```bash
 psql -h localhost -p 5433 -U postgres -d bingo
 ```
 
-### Database Schema
+## Database schema
 
-The database is initialized with a `chemicals` table that has the following structure:
-
+The initialization ensures a `chemicals` table exists (or is migrated) with:
 ```sql
 CREATE TABLE chemicals (
     id SERIAL PRIMARY KEY,
@@ -77,56 +59,56 @@ CREATE TABLE chemicals (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
+Indexes:
+- `idx_chemicals_molecule_bingo` using `bingo_idx`
+- `idx_chemicals_chemical_id`
 
-### Example Queries
+## Example queries
 
-Here are some example queries you can run against the database:
-
-#### Exact Structure Search
+Exact structure search:
 ```sql
 SELECT chemical_id FROM chemicals WHERE molecule @ ('C1CCCCC1', 'exact') = 1;
 ```
 
-#### Substructure Search
+Substructure search:
 ```sql
 SELECT chemical_id FROM chemicals WHERE molecule @ ('C1CCCCC1', '')::bingo.sub;
 ```
 
-#### Similarity Search
+Similarity (if supported in your build):
 ```sql
 SELECT chemical_id FROM chemicals WHERE bingo.sim(molecule, 'C1CCCCC1') > 0.8;
 ```
 
-## Testing the Setup
+## Test the setup
 
-A test script is provided to verify that the PostgreSQL container with the Bingo extension is working correctly:
-
+A script is provided to verify the container:
 ```bash
 cd db
-docker-compose up -d  # Start the container if not already running
-chmod +x test-bingo.sh  # Make sure the script is executable
+docker compose up -d  # Start container if not already running
+chmod +x test-bingo.sh
 ./test-bingo.sh
 ```
-
-This script will:
+The script will:
 1. Wait for PostgreSQL to be ready
 2. Verify that the Bingo extension is installed
-3. Insert a test chemical (cyclohexane) into the database
-4. Perform an exact structure search
-5. Perform a substructure search
+3. Insert a test chemical (cyclohexane)
+4. Run exact and substructure searches
 
-## Stopping the Database
+## Troubleshooting
+- If `CREATE EXTENSION bingo` fails: ensure the image was built (not the plain postgres image). Run `docker compose build --no-cache` then `docker compose up -d`.
+- If you changed init scripts but the schema didn’t update: Postgres only runs init scripts on first init of the data directory. Remove the volume and try again: `docker compose down -v && docker compose up -d`.
+- On Apple Silicon problems: uncomment `platform: linux/amd64` in docker-compose and rebuild. Alternatively, build with `docker buildx` for your platform.
 
-To stop the database:
+## Stop the database
 
 ```bash
 cd db
-docker-compose down
+docker compose down
 ```
 
-To stop the database and remove all data:
-
+Remove all data:
 ```bash
 cd db
-docker-compose down -v
+docker compose down -v
 ```

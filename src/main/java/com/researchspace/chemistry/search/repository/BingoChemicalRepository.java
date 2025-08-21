@@ -28,8 +28,7 @@ public class BingoChemicalRepository implements ChemicalRepository {
   @Override
   public void saveChemical(String smiles, String chemicalId) throws IOException {
     try {
-String sql =
-          "INSERT INTO chemicals (smiles, chemical_id, molecule) VALUES (?, ?, ?)";
+      String sql = "INSERT INTO chemicals (smiles, chemical_id, molecule) VALUES (?, ?, ?)";
       jdbcTemplate.update(sql, smiles, chemicalId, smiles);
       LOGGER.debug("Saved chemical with ID: {} to Bingo repository", chemicalId);
     } catch (Exception e) {
@@ -50,34 +49,74 @@ String sql =
 
   @Override
   public void initialize() throws IOException {
+    boolean bingoAvailable = false;
+
     try {
-      // Create Bingo extension if not exists
+      // Try to create Bingo extension
       jdbcTemplate.execute("CREATE EXTENSION IF NOT EXISTS bingo");
+      bingoAvailable = true;
+      LOGGER.info("Bingo extension created successfully");
+    } catch (Exception e) {
+      LOGGER.warn(
+          "Bingo extension not available: {}. Falling back to basic table structure",
+          e.getMessage());
+    }
 
-      // Create table with Bingo molecule column
-      String createTableSql =
-          """
-          CREATE TABLE IF NOT EXISTS chemicals (
-              id SERIAL PRIMARY KEY,
-              smiles VARCHAR(2000) NOT NULL,
-              chemical_id VARCHAR(255) NOT NULL UNIQUE,
-              molecule bingo.molecule,
-              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-          )
-          """;
-      jdbcTemplate.execute(createTableSql);
+    try {
+      if (bingoAvailable) {
+        // Create table with Bingo molecule column
+        String createTableSql =
+            """
+                CREATE TABLE IF NOT EXISTS chemicals (
+                    id SERIAL PRIMARY KEY,
+                    smiles VARCHAR(2000) NOT NULL,
+                    chemical_id VARCHAR(255) NOT NULL UNIQUE,
+                    molecule bingo.molecule,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                """;
+        jdbcTemplate.execute(createTableSql);
 
-      // Create index on chemical_id for faster lookups
+        // Try to create Bingo molecular index for fast chemical searches
+        try {
+          String createBingoIndexSql =
+              "CREATE INDEX IF NOT EXISTS idx_chemicals_molecule_bingo ON chemicals using bingo_idx"
+                  + " (molecule);";
+          jdbcTemplate.execute(createBingoIndexSql);
+          LOGGER.info("Bingo molecular index created successfully");
+        } catch (Exception indexException) {
+          LOGGER.warn(
+              "Could not create Bingo molecular index: {}. Continuing without molecular index",
+              indexException.getMessage());
+        }
+
+        LOGGER.info("Bingo chemical repository initialized with molecular indexing");
+      } else {
+        // Fallback: Create table with VARCHAR molecule column
+        String createTableSql =
+            """
+                CREATE TABLE IF NOT EXISTS chemicals (
+                    id SERIAL PRIMARY KEY,
+                    smiles VARCHAR(2000) NOT NULL,
+                    chemical_id VARCHAR(255) NOT NULL UNIQUE,
+                    molecule VARCHAR(2000),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                """;
+        jdbcTemplate.execute(createTableSql);
+
+        LOGGER.info(
+            "Bingo chemical repository initialized with basic table structure (Bingo extension not"
+                + " available)");
+      }
+
+      // Create index on chemical_id for faster lookups (always needed)
       String createIndexSql =
           "CREATE INDEX IF NOT EXISTS idx_chemicals_chemical_id ON chemicals(chemical_id)";
       jdbcTemplate.execute(createIndexSql);
 
-      // Create Bingo molecular index for fast chemical searches
-      String createBingoIndexSql =
-          "CREATE INDEX IF NOT EXISTS idx_chemicals_molecule_bingo ON chemicals using bingo_idx (smiles bingo.molecule);";
-      jdbcTemplate.execute(createBingoIndexSql);
+      clearAll();
 
-      LOGGER.info("Bingo chemical repository initialized with molecular indexing");
     } catch (Exception e) {
       throw new IOException("Failed to initialize Bingo chemical repository", e);
     }
@@ -85,7 +124,7 @@ String sql =
 
   public List<String> searchExact(String smiles) throws IOException {
     try {
-      String sql = "SELECT chemical_id FROM chemicals WHERE molecule @ (?, 'exact') = 1";
+      String sql = "SELECT chemical_id FROM chemicals WHERE molecule @ (ROW(?, '')::bingo.exact)";
       return jdbcTemplate.queryForList(sql, String.class, smiles);
     } catch (Exception e) {
       throw new IOException("Failed to perform exact search in Bingo repository", e);
@@ -94,7 +133,7 @@ String sql =
 
   public List<String> searchSubstructure(String smiles) throws IOException {
     try {
-      String sql = "SELECT chemical_id FROM chemicals WHERE molecule @ (?, '')::bingo.sub";
+      String sql = "SELECT chemical_id FROM chemicals WHERE molecule @ (ROW(?, '')::bingo.sub)";
       return jdbcTemplate.queryForList(sql, String.class, smiles);
     } catch (Exception e) {
       throw new IOException("Failed to perform substructure search in Bingo repository", e);

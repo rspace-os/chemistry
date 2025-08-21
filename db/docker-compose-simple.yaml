@@ -1,9 +1,6 @@
 services:
   postgres:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: bingo-postgres:pg14
+    image: postgres:14
     platform: linux/amd64
     container_name: bingo-postgres
     ports:
@@ -14,14 +11,13 @@ services:
       POSTGRES_DB: bingo
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d bingo"]
       interval: 10s
       timeout: 5s
       retries: 10
-    # If you are on Apple Silicon and run into qemu issues, uncomment:
-    # platform: linux/amd64
 
 volumes:
   postgres-data:
