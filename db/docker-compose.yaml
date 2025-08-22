@@ -20,8 +20,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-    # If you are on Apple Silicon and run into qemu issues, uncomment:
-    # platform: linux/amd64
 
 volumes:
   postgres-data:

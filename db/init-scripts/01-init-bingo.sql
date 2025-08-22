@@ -1,7 +1,5 @@
 -- Initialize Bingo extension and schema
 
--- Ensure database exists (usually created via POSTGRES_DB). Here we assume 'bingo' DB exists.
--- Create Bingo extension if not exists
 CREATE EXTENSION IF NOT EXISTS bingo;
 
 -- Create chemicals table if not exists, using TEXT type for molecule storage
@@ -19,8 +17,6 @@ BEGIN
     );
   END IF;
 END $$;
-
--- Note: Bingo works with TEXT type for molecule storage, bingo.molecule domain causes operator compatibility issues
 
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_chemicals_molecule_bingo ON chemicals USING bingo_idx (molecule);
