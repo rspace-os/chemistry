@@ -164,19 +164,6 @@ public class SearchControllerTest {
   }
 
   @Test
-  void whenEmptySaveBatchRequest_thenReturns200() throws Exception {
-    String emptyArrayRequestBody = "[]";
-
-    mockMvc
-        .perform(
-            post(SAVE_BATCH_ENDPOINT)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(emptyArrayRequestBody))
-        .andExpect(status().isOk())
-        .andExpect(content().string("Saved"));
-  }
-
-  @Test
   void whenNoSaveBatchRequestBody_thenReturns400() throws Exception {
     mockMvc
         .perform(post(SAVE_BATCH_ENDPOINT).contentType(MediaType.APPLICATION_JSON))

@@ -1,4 +1,4 @@
-# PostgreSQL with Bingo Extension
+# PostgreSQL with Bingo Extension (Experimental)
 
 This directory contains the docker configuration to spin up PostgreSQL 14 with the EPAM Bingo chemical cartridge installed.
 
