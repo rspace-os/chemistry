@@ -32,6 +32,13 @@ public class SearchController {
     return "Saved";
   }
 
+  @PostMapping(value = "/chemistry/saveBatch")
+  public @ResponseBody String saveBatch(@Valid @RequestBody List<SaveDTO> saveDTOs)
+      throws IOException {
+    searchService.saveChemicals(saveDTOs);
+    return "Saved";
+  }
+
   @PostMapping(value = "/chemistry/search")
   public @ResponseBody List<String> search(@Valid @RequestBody SearchDTO searchDTO)
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
@@ -43,5 +50,11 @@ public class SearchController {
       throws IOException, ExecutionException, InterruptedException, TimeoutException {
     searchService.initFiles();
     return "Indexed";
+  }
+
+  @PostMapping(value = "/chemistry/reindexMolecules")
+  public @ResponseBody String reindexMolecules() throws IOException {
+    searchService.reindexMolecules();
+    return "Molecular index rebuilt";
   }
 }

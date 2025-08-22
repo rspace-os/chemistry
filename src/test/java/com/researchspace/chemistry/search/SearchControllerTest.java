@@ -29,7 +29,11 @@ public class SearchControllerTest {
 
   private static final String SAVE_ENDPOINT = "/chemistry/save";
 
+  private static final String SAVE_BATCH_ENDPOINT = "/chemistry/saveBatch";
+
   private static final String CLEAR_SEARCH_INDEXES_ENDPOINT = "/chemistry/clearSearchIndexes";
+
+  private static final String REINDEX_MOLECULES_ENDPOINT = "/chemistry/reindexMolecules";
 
   @Test
   void whenValidSearchRequest_thenReturns200AndResult() throws Exception {
@@ -135,6 +139,51 @@ public class SearchControllerTest {
   }
 
   @Test
+  void whenValidSaveBatchRequest_thenReturns200AndResult() throws Exception {
+    String validRequestBody =
+        """
+            [
+                {
+                    "chemical": "CCC",
+                    "chemicalId": "123"
+                },
+                {
+                    "chemical": "CCO",
+                    "chemicalId": "456"
+                }
+            ]
+            """;
+
+    mockMvc
+        .perform(
+            post(SAVE_BATCH_ENDPOINT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validRequestBody))
+        .andExpect(status().isOk())
+        .andExpect(content().string("Saved"));
+  }
+
+  @Test
+  void whenEmptySaveBatchRequest_thenReturns200() throws Exception {
+    String emptyArrayRequestBody = "[]";
+
+    mockMvc
+        .perform(
+            post(SAVE_BATCH_ENDPOINT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(emptyArrayRequestBody))
+        .andExpect(status().isOk())
+        .andExpect(content().string("Saved"));
+  }
+
+  @Test
+  void whenNoSaveBatchRequestBody_thenReturns400() throws Exception {
+    mockMvc
+        .perform(post(SAVE_BATCH_ENDPOINT).contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
   void whenValidCleanSearchIndexesRequest_thenReturns200() throws Exception {
     doNothing().when(searchService).clearFiles();
     verify(searchService, Mockito.never()).clearFiles();
@@ -142,5 +191,18 @@ public class SearchControllerTest {
     mockMvc.perform(delete(CLEAR_SEARCH_INDEXES_ENDPOINT)).andExpect(status().isOk());
 
     verify(searchService, Mockito.times(1)).clearFiles();
+  }
+
+  @Test
+  void whenValidReindexMoleculesRequest_thenReturns200() throws Exception {
+    doNothing().when(searchService).reindexMolecules();
+    verify(searchService, Mockito.never()).reindexMolecules();
+
+    mockMvc
+        .perform(post(REINDEX_MOLECULES_ENDPOINT))
+        .andExpect(status().isOk())
+        .andExpect(content().string("Molecular index rebuilt"));
+
+    verify(searchService, Mockito.times(1)).reindexMolecules();
   }
 }

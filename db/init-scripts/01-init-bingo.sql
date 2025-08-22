@@ -4,7 +4,7 @@
 -- Create Bingo extension if not exists
 CREATE EXTENSION IF NOT EXISTS bingo;
 
--- Create chemicals table if not exists, using bingo.molecule type
+-- Create chemicals table if not exists, using TEXT type for molecule storage
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -14,24 +14,13 @@ BEGIN
         id SERIAL PRIMARY KEY,
         smiles VARCHAR(2000) NOT NULL,
         chemical_id VARCHAR(255) NOT NULL UNIQUE,
-        molecule bingo.molecule,
+        molecule TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   END IF;
 END $$;
 
--- If a pre-existing table had molecule as TEXT/VARCHAR, convert it
-DO $$
-BEGIN
-  IF EXISTS (
-    SELECT 1
-    FROM information_schema.columns 
-    WHERE table_name='chemicals' AND column_name='molecule' 
-      AND udt_name IN ('text','varchar')
-  ) THEN
-    EXECUTE 'ALTER TABLE chemicals ALTER COLUMN molecule TYPE bingo.molecule USING molecule::bingo.molecule';
-  END IF;
-END $$;
+-- Note: Bingo works with TEXT type for molecule storage, bingo.molecule domain causes operator compatibility issues
 
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_chemicals_molecule_bingo ON chemicals USING bingo_idx (molecule);

@@ -3,6 +3,7 @@ package com.researchspace.chemistry.search;
 import com.researchspace.chemistry.convert.ConvertDTO;
 import com.researchspace.chemistry.convert.ConvertService;
 import com.researchspace.chemistry.convert.convertor.OpenBabelConvertor;
+import com.researchspace.chemistry.search.repository.BingoChemicalRepository;
 import com.researchspace.chemistry.search.repository.ChemicalRepository;
 import com.researchspace.chemistry.search.repository.OpenBabelChemicalRepository;
 import jakarta.annotation.PostConstruct;
@@ -46,8 +47,14 @@ public class SearchService {
   }
 
   public void saveChemicals(SaveDTO saveDTO) throws IOException {
-    String smiles = getSmilesFromOpenBabel(saveDTO.chemical(), saveDTO.chemicalFormat());
-    chemicalRepository.saveChemical(smiles, saveDTO.chemicalId());
+    //    String smiles = getSmilesFromOpenBabel(saveDTO.chemical(), saveDTO.chemicalFormat());
+    chemicalRepository.saveChemical(saveDTO.chemical(), saveDTO.chemicalId());
+  }
+
+  public void saveChemicals(List<SaveDTO> saveDTOs) throws IOException {
+    for (SaveDTO saveDTO : saveDTOs) {
+      saveChemicals(saveDTO);
+    }
   }
 
   public List<String> search(SearchDTO search)
@@ -55,7 +62,9 @@ public class SearchService {
     if (search.chemicalSearchTerm() != null && !search.chemicalSearchTerm().isEmpty()) {
       String smiles =
           getSmilesFromOpenBabel(search.chemicalSearchTerm(), search.searchTermFormat());
-      return chemicalRepository.search(smiles, search.searchType());
+      List<String> searchResults =  chemicalRepository.search(smiles, search.searchType());
+      LOGGER.info("Found {} results for search term: {}", searchResults.size(), smiles);
+      return searchResults;
     }
     return Collections.emptyList();
   }
@@ -73,6 +82,14 @@ public class SearchService {
       ((OpenBabelChemicalRepository) chemicalRepository).indexChemicals();
     } else {
       LOGGER.warn("Indexing is not supported for the current repository implementation.");
+    }
+  }
+
+  public void reindexMolecules() throws IOException {
+    if (chemicalRepository instanceof BingoChemicalRepository) {
+      ((BingoChemicalRepository) chemicalRepository).reindexMolecules();
+    } else {
+      LOGGER.warn("Molecular reindexing is only supported for Bingo repository implementation.");
     }
   }
 }
