@@ -24,9 +24,9 @@ public class IndigoChemicalAnalyser implements ChemicalAnalyser {
   public ExtractionResult analyse(String input, boolean groupMoleculesByRole) {
     IndigoObject inputChemical = indigoFacade.load(new Indigo(), input);
 
-    return groupMoleculesByRole ?
-      groupMoleculesByRole(inputChemical) :
-      analyseMolecules(inputChemical);
+    return groupMoleculesByRole
+        ? groupMoleculesByRole(inputChemical)
+        : analyseMolecules(inputChemical);
   }
 
   /***
@@ -67,26 +67,34 @@ public class IndigoChemicalAnalyser implements ChemicalAnalyser {
     result.setReaction(isReaction);
     List<Molecule> molecules = new ArrayList<>();
 
-    if(!isReaction) {
+    if (!isReaction) {
       throw new ChemistryException("For Stoichiometry analysis, the input must be a reaction.");
     }
-    
-    inputChemical.iterateReactants().forEach(molecule -> {
-      Molecule reactant = extractMoleculeInfo(molecule, MoleculeRole.REACTANT);
-      molecules.add(reactant);
-    });
-    
-    inputChemical.iterateProducts().forEach(molecule -> {
-      Molecule product = extractMoleculeInfo(molecule, MoleculeRole.PRODUCT);
-      molecules.add(product);
-    });
-    
-    inputChemical.iterateCatalysts().forEach(molecule -> {
-      Molecule agent = extractMoleculeInfo(molecule, MoleculeRole.AGENT);
-      molecules.add(agent);
-    });
 
-    
+    inputChemical
+        .iterateReactants()
+        .forEach(
+            molecule -> {
+              Molecule reactant = extractMoleculeInfo(molecule, MoleculeRole.REACTANT);
+              molecules.add(reactant);
+            });
+
+    inputChemical
+        .iterateProducts()
+        .forEach(
+            molecule -> {
+              Molecule product = extractMoleculeInfo(molecule, MoleculeRole.PRODUCT);
+              molecules.add(product);
+            });
+
+    inputChemical
+        .iterateCatalysts()
+        .forEach(
+            molecule -> {
+              Molecule agent = extractMoleculeInfo(molecule, MoleculeRole.AGENT);
+              molecules.add(agent);
+            });
+
     result.setMoleculeInfo(molecules);
     return result;
   }

@@ -2,7 +2,6 @@ package com.researchspace.chemistry.extract;
 
 import com.researchspace.chemistry.analysis.Molecule;
 import com.researchspace.chemistry.analysis.MoleculeRole;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;

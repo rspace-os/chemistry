@@ -1,19 +1,17 @@
 package com.researchspace.chemistry.stoichiometry;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
 
 import com.researchspace.chemistry.analysis.Molecule;
 import com.researchspace.chemistry.analysis.MoleculeRole;
 import com.researchspace.chemistry.extract.ExtractionRequest;
 import com.researchspace.chemistry.extract.ExtractionResult;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
@@ -38,12 +36,12 @@ public class StoichiometryIT {
   public void testStoichiometryAnalysisFromSmiles() {
     String reaction = "(C(=O)O).(OCC)>>(C(=O)OCC).(O)";
     ExtractionRequest request = new ExtractionRequest(reaction);
-    
+
     ResponseEntity<ExtractionResult> response = makeStoichiometryRequest(request);
-    
+
     assertTrue(response.getStatusCode().is2xxSuccessful());
     assertNotNull(response.getBody());
-    
+
     ExtractionResult result = response.getBody();
     assertTrue(result.isReaction());
 
@@ -55,7 +53,7 @@ public class StoichiometryIT {
     assertEquals(3, firstReactant.getAtomCount());
     assertEquals(2, firstReactant.getBondCount());
     assertEquals("C O2", firstReactant.getFormula());
-    
+
     List<Molecule> products = result.getProducts();
     assertEquals(2, products.size());
 
@@ -71,12 +69,12 @@ public class StoichiometryIT {
     String filePath = "src/test/resources/chemistry_file_examples/methane-combustion.rxn";
     String fileContent = readFileContent(filePath);
     ExtractionRequest request = new ExtractionRequest(fileContent);
-    
+
     ResponseEntity<ExtractionResult> response = makeStoichiometryRequest(request);
-    
+
     assertTrue(response.getStatusCode().is2xxSuccessful());
     assertNotNull(response.getBody());
-    
+
     ExtractionResult result = response.getBody();
     assertTrue(result.isReaction());
 
@@ -103,7 +101,7 @@ public class StoichiometryIT {
   public void testStoichiometryAnalysisWithNonReaction() {
     String nonReaction = "CCC";
     ExtractionRequest request = new ExtractionRequest(nonReaction);
-    
+
     ResponseEntity<ExtractionResult> response = makeStoichiometryRequest(request);
 
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
@@ -114,15 +112,15 @@ public class StoichiometryIT {
   public void testNullOrEmptyInput(String inputValue) {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
-    
-    String requestBody = String.format("{\"input\": %s}", 
-        inputValue == null ? "null" : "\"" + inputValue + "\"");
-    
+
+    String requestBody =
+        String.format("{\"input\": %s}", inputValue == null ? "null" : "\"" + inputValue + "\"");
+
     HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
-    
+
     ResponseEntity<String> response =
         restTemplate.postForEntity(STOICHIOMETRY_ENDPOINT, request, String.class);
-    
+
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
   }
 
@@ -130,29 +128,28 @@ public class StoichiometryIT {
   public void testMissingInputParameter() {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
-    
+
     String requestBody = "{}";
     HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
-    
+
     ResponseEntity<String> response =
         restTemplate.postForEntity(STOICHIOMETRY_ENDPOINT, request, String.class);
-    
+
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
   }
 
   @Test
   public void testInvalidChemicalStructure() {
     ExtractionRequest request = new ExtractionRequest("invalid");
-    
+
     ResponseEntity<String> response =
         restTemplate.postForEntity(STOICHIOMETRY_ENDPOINT, request, String.class);
-    
+
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
   }
 
   private ResponseEntity<ExtractionResult> makeStoichiometryRequest(ExtractionRequest request) {
-    return restTemplate.postForEntity(
-        STOICHIOMETRY_ENDPOINT, request, ExtractionResult.class);
+    return restTemplate.postForEntity(STOICHIOMETRY_ENDPOINT, request, ExtractionResult.class);
   }
 
   private String readFileContent(String filePath) throws IOException {

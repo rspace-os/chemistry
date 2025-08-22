@@ -17,8 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 public class IndigoExtractorTest {
 
-  @Autowired
-  IndigoChemicalAnalyser chemicalAnalyser;
+  @Autowired IndigoChemicalAnalyser chemicalAnalyser;
 
   private static final boolean GROUP_BY_ROLE = false;
 
@@ -46,7 +45,8 @@ public class IndigoExtractorTest {
   @ValueSource(strings = {"invalid", "1234"})
   public void whenInvalidChem_thenThrowsException(String chemical) {
     ChemistryException exception =
-        assertThrows(ChemistryException.class, () -> chemicalAnalyser.analyse(chemical, GROUP_BY_ROLE));
+        assertThrows(
+            ChemistryException.class, () -> chemicalAnalyser.analyse(chemical, GROUP_BY_ROLE));
     assertEquals(
         "Can't load input as molecule or reaction. Input: " + chemical, exception.getMessage());
   }
@@ -55,7 +55,8 @@ public class IndigoExtractorTest {
   @NullAndEmptySource
   public void whenNullOrEmptyChem_thenThrowsException(String chemical) {
     ChemistryException exception =
-        assertThrows(ChemistryException.class, () -> chemicalAnalyser.analyse(chemical, GROUP_BY_ROLE));
+        assertThrows(
+            ChemistryException.class, () -> chemicalAnalyser.analyse(chemical, GROUP_BY_ROLE));
     assertEquals("Input is empty", exception.getMessage());
   }
 }
