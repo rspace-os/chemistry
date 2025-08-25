@@ -84,7 +84,11 @@ Image generation is attempted first using the Indigo library, with OpenBabel as 
 **note**: due to their complexity and the time taken to process them, pdb file images are not attempted to be generated and instead a default image is returned.
 
 ### Search
-The search functionality uses the OpenBabel linux library, which is installed in the Docker image, and if running without
+
+The chemistry service supports two different search implementations:
+
+#### File-Based Search (Default)
+The default search functionality uses the OpenBabel linux library, which is installed in the Docker image, and if running without
 Docker, should be installed on the system. The search functionality is file-based. New chemicals are saved via the `/chemical/save` endpoint. Chemicals are stored in smiles format along with their id. 
 
 Search can be performed either as exact match or substructure searching. 
@@ -99,6 +103,26 @@ Saved chemicals are added to both `chemicalsMaster.smi` and `nonIndexedChemicals
 Search is performed against `nonIndexedChemicals.smi` and the OpenBabel fastsearch formatted `fastSearchChemicals.fs`.
 
 Indexing runs as a scheduled task (by default once per day at midnight) and re-generates `fastSearchChemicals.fs` from `chemicalsMaster.smi` so that all newly added chemicals are indexed, and then clears `nonIndexedChemicals.smi`.
+
+#### Database-Backed Search (Experimental)
+**NEW**: An experimental database-backed search implementation is available using PostgreSQL with the EPAM BINGO chemical cartridge. This provides enhanced search capabilities including similarity searching and real-time indexing.
+
+To use the database search implementation:
+
+1. **Start the database**: See detailed setup instructions in [`db/README.md`](db/README.md)
+2. **Configure the application**: Set the following property in `application.properties`:
+   ```properties
+   search.repository=bingo
+   ```
+
+The database implementation offers several advantages over file-based search:
+- Real-time indexing (no scheduled batch processing)
+- Enhanced search types (exact, substructure, and similarity)
+- ACID compliance and data integrity
+- Better concurrent access support
+- Scalable architecture
+
+For complete setup instructions, database schema details, and example queries, see [`db/README.md`](db/README.md).
 
 ## Swagger
 Auto-generated swagger documentation is available at (by default) `http://localhost:8090/swagger-ui/index.html`

@@ -16,6 +16,13 @@ pip install requests pandas
 pip install rdkit  # For SMILES validation
 ```
 
+### Manual Dataset Placement
+Manually download the dataset:
+1. Visit [ChEMBL22 on Kaggle](https://www.kaggle.com/datasets/art3mis/chembl22)
+2. Download the dataset
+3. Place the file as `chembl22.txt` in the project directory
+4. Run the script again
+
 ## Installation
 
 1. Install the required dependencies:
@@ -39,15 +46,6 @@ This will:
 - If not found, attempt to download from Kaggle
 - Process up to 100,000 SMILES strings
 - Send them in batches of 1,000 to `http://localhost:8090/chemistry/saveBatch`
-
-### Manual Dataset Placement
-
-If automatic download fails, you can manually download the dataset:
-
-1. Visit [ChEMBL22 on Kaggle](https://www.kaggle.com/datasets/art3mis/chembl22)
-2. Download the dataset
-3. Place the file as `chembl22.txt` in the project directory
-4. Run the script again
 
 ## Configuration
 
