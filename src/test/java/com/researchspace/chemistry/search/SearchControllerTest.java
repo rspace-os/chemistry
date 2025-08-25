@@ -33,8 +33,6 @@ public class SearchControllerTest {
 
   private static final String CLEAR_SEARCH_INDEXES_ENDPOINT = "/chemistry/clearSearchIndexes";
 
-  private static final String REINDEX_MOLECULES_ENDPOINT = "/chemistry/reindexMolecules";
-
   @Test
   void whenValidSearchRequest_thenReturns200AndResult() throws Exception {
     List<String> results = List.of("123", "456");
@@ -178,18 +176,5 @@ public class SearchControllerTest {
     mockMvc.perform(delete(CLEAR_SEARCH_INDEXES_ENDPOINT)).andExpect(status().isOk());
 
     verify(searchService, Mockito.times(1)).clearFiles();
-  }
-
-  @Test
-  void whenValidReindexMoleculesRequest_thenReturns200() throws Exception {
-    doNothing().when(searchService).reindexMolecules();
-    verify(searchService, Mockito.never()).reindexMolecules();
-
-    mockMvc
-        .perform(post(REINDEX_MOLECULES_ENDPOINT))
-        .andExpect(status().isOk())
-        .andExpect(content().string("Molecular index rebuilt"));
-
-    verify(searchService, Mockito.times(1)).reindexMolecules();
   }
 }

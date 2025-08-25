@@ -46,15 +46,8 @@ public class SearchController {
   }
 
   @PostMapping(value = "/chemistry/index")
-  public @ResponseBody String index()
-      throws IOException, ExecutionException, InterruptedException, TimeoutException {
+  public @ResponseBody String index() throws IOException {
     searchService.initFiles();
     return "Indexed";
-  }
-
-  @PostMapping(value = "/chemistry/reindexMolecules")
-  public @ResponseBody String reindexMolecules() throws IOException {
-    searchService.reindexMolecules();
-    return "Molecular index rebuilt";
   }
 }

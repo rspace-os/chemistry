@@ -3,7 +3,6 @@ package com.researchspace.chemistry.search;
 import com.researchspace.chemistry.convert.ConvertDTO;
 import com.researchspace.chemistry.convert.ConvertService;
 import com.researchspace.chemistry.convert.convertor.OpenBabelConvertor;
-import com.researchspace.chemistry.search.repository.BingoChemicalRepository;
 import com.researchspace.chemistry.search.repository.ChemicalRepository;
 import com.researchspace.chemistry.search.repository.OpenBabelChemicalRepository;
 import jakarta.annotation.PostConstruct;
@@ -62,7 +61,7 @@ public class SearchService {
     if (search.chemicalSearchTerm() != null && !search.chemicalSearchTerm().isEmpty()) {
       String smiles =
           getSmilesFromOpenBabel(search.chemicalSearchTerm(), search.searchTermFormat());
-      List<String> searchResults =  chemicalRepository.search(smiles, search.searchType());
+      List<String> searchResults = chemicalRepository.search(smiles, search.searchType());
       LOGGER.info("Found {} results for search term: {}", searchResults.size(), smiles);
       return searchResults;
     }
@@ -82,14 +81,6 @@ public class SearchService {
       ((OpenBabelChemicalRepository) chemicalRepository).indexChemicals();
     } else {
       LOGGER.warn("Indexing is not supported for the current repository implementation.");
-    }
-  }
-
-  public void reindexMolecules() throws IOException {
-    if (chemicalRepository instanceof BingoChemicalRepository) {
-      ((BingoChemicalRepository) chemicalRepository).reindexMolecules();
-    } else {
-      LOGGER.warn("Molecular reindexing is only supported for Bingo repository implementation.");
     }
   }
 }
