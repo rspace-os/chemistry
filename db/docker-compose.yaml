@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: bingo-postgres:pg14
+    image: bingo-postgres:pg17
     platform: linux/amd64
     container_name: bingo-postgres
     ports:
