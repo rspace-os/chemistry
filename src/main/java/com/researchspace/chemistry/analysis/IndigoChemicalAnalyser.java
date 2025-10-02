@@ -3,7 +3,6 @@ package com.researchspace.chemistry.analysis;
 import com.epam.indigo.Indigo;
 import com.epam.indigo.IndigoException;
 import com.epam.indigo.IndigoObject;
-import com.researchspace.chemistry.ChemistryException;
 import com.researchspace.chemistry.extract.ExtractionResult;
 import com.researchspace.chemistry.util.IndigoFacade;
 import java.util.ArrayList;
@@ -68,7 +67,8 @@ public class IndigoChemicalAnalyser implements ChemicalAnalyser {
     List<Molecule> molecules = new ArrayList<>();
 
     if (!isReaction) {
-      throw new ChemistryException("For Stoichiometry analysis, the input must be a reaction.");
+      throw new IllegalArgumentException(
+          "For Stoichiometry analysis, the input must be a reaction.");
     }
 
     inputChemical

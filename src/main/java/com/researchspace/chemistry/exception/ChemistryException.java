@@ -1,4 +1,4 @@
-package com.researchspace.chemistry;
+package com.researchspace.chemistry.exception;
 
 public class ChemistryException extends RuntimeException {
   public ChemistryException(String message, Exception cause) {
