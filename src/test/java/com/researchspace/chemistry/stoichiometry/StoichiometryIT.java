@@ -105,7 +105,7 @@ public class StoichiometryIT {
     ResponseEntity<String> response =
         restTemplate.postForEntity(STOICHIOMETRY_ENDPOINT, request, String.class);
 
-    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     assertEquals("For Stoichiometry analysis, the input must be a reaction.", response.getBody());
   }
 

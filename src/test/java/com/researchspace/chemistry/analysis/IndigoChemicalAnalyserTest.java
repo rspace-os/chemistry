@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.researchspace.chemistry.exception.ChemistryException;
 import com.researchspace.chemistry.extract.ExtractionResult;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -43,9 +42,9 @@ public class IndigoChemicalAnalyserTest {
   public void whenAnalyzingStoichiometry_withNonReaction_thenThrowException() {
     String nonReaction = "CCC";
 
-    ChemistryException exception =
+    IllegalArgumentException exception =
         assertThrows(
-            ChemistryException.class,
+            IllegalArgumentException.class,
             () -> {
               chemicalAnalyser.analyse(nonReaction, GROUP_BY_ROLE);
             });
