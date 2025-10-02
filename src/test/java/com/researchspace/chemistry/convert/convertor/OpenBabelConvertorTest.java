@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import com.researchspace.chemistry.exception.ChemistryException;
 import com.researchspace.chemistry.convert.ConvertDTO;
+import com.researchspace.chemistry.exception.ChemistryException;
 import com.researchspace.chemistry.util.CommandExecutor;
 import java.io.IOException;
 import java.util.Collections;

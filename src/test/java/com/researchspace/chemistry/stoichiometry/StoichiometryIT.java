@@ -102,9 +102,11 @@ public class StoichiometryIT {
     String nonReaction = "CCC";
     ExtractionRequest request = new ExtractionRequest(nonReaction);
 
-    ResponseEntity<ExtractionResult> response = makeStoichiometryRequest(request);
+    ResponseEntity<String> response =
+        restTemplate.postForEntity(STOICHIOMETRY_ENDPOINT, request, String.class);
 
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    assertEquals("For Stoichiometry analysis, the input must be a reaction.", response.getBody());
   }
 
   @ParameterizedTest
