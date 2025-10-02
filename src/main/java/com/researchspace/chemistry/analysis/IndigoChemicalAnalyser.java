@@ -3,7 +3,7 @@ package com.researchspace.chemistry.analysis;
 import com.epam.indigo.Indigo;
 import com.epam.indigo.IndigoException;
 import com.epam.indigo.IndigoObject;
-import com.researchspace.chemistry.ChemistryException;
+import com.researchspace.chemistry.exception.ChemistryException;
 import com.researchspace.chemistry.extract.ExtractionResult;
 import com.researchspace.chemistry.util.IndigoFacade;
 import java.util.ArrayList;

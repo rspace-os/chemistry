@@ -1,6 +1,6 @@
 package com.researchspace.chemistry.convert;
 
-import com.researchspace.chemistry.ChemistryException;
+import com.researchspace.chemistry.exception.ChemistryException;
 import com.researchspace.chemistry.convert.convertor.Convertor;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;

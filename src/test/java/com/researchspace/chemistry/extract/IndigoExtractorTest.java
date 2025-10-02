@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.researchspace.chemistry.ChemistryException;
+import com.researchspace.chemistry.exception.ChemistryException;
 import com.researchspace.chemistry.analysis.IndigoChemicalAnalyser;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
