@@ -217,10 +217,13 @@ public class ExtractIT {
 
   @Test
   public void testInvalidChemicalStructure() {
-    ExtractionRequest request = new ExtractionRequest("this-is-not-a-valid-structure");
-    ResponseEntity<ExtractionResult> response = makeExtractionRequest(request);
+    String invalid = "this-is-not-a-valid-structure";
+    ExtractionRequest request = new ExtractionRequest(invalid);
+    ResponseEntity<String> response =
+        restTemplate.postForEntity(EXTRACT_ENDPOINT, request, String.class);
 
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    assertEquals("Can't load input as molecule or reaction. Input: " + invalid, response.getBody());
   }
 
   private ResponseEntity<ExtractionResult> makeExtractionRequest(ExtractionRequest request) {

@@ -3,7 +3,7 @@ package com.researchspace.chemistry.image;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.researchspace.chemistry.ChemistryException;
+import com.researchspace.chemistry.exception.ChemistryException;
 import com.researchspace.chemistry.image.generator.IndigoImageGenerator;
 import com.researchspace.chemistry.image.generator.OpenBabelImageGenerator;
 import java.util.Optional;
