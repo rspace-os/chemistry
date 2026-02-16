@@ -26,7 +26,7 @@ Run all unit tests: `mvn clean test`
 
 You can fetch the latest image from the dockerhub and run it with this one command:
 
-`docker run -d -p 8090:8090 --name oss-chemistry-container -v chemistry-data:/home/app rspaceops/oss-chemistry:latest`
+`docker run -d -p 8090:8090 --name oss-chemistry-container -v chemistry-files:/home/app rspaceops/oss-chemistry:latest`
 
 #### Docker (Build image manually - not recommended for production use )
 From the root of the repo, run: `docker build -t chemistry .` to create the image named `chemistry` locally. 
