@@ -22,20 +22,11 @@ Run all unit tests: `mvn clean test`
 **Running RSpace Docker? There's no need to look at the steps here. The RSpace Docker repo comes with chemistry already setup and part of RSpace. Just follow the steps at https://github.com/rspace-os/rspace-docker**
 
 
-#### Docker (docker-compose.yaml)
+#### Docker (Production use)
 
-Create a new directory for this docker container (Eg. /home/user/rspace-chemistry-docker) and have the docker-compose.yaml file (from this repo) and the chemistry.jar file (from the release section) in the root of that directory. Once you have these files you can start the container.
+You can fetch the latest image from the dockerhub and run it with this one command:
 
-- You can start the container with: docker compose up -d
-- You can stop the container with: docker compose down
-- You can view the container logs with: docker logs <container name>
-- You can get the container name with: docker ps
-
-The container stores some data that needs to be kept on container restarts, therefore there is a docker volume mounted to keep this data persistent.
-
-As the container is designed for production use, the 8090 port is binded only to localhost
-
-To update the Microservice version, stop the container, replace the .jar file with the new release, and start up the container again.
+`docker run -d -p 8090:8090 --name oss-chemistry-container -v chemistry-data:/home/app rspaceops/oss-chemistry:latest`
 
 #### Docker (Build image manually - not recommended for production use )
 From the root of the repo, run: `docker build -t chemistry .` to create the image named `chemistry` locally. 
