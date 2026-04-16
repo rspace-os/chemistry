@@ -52,7 +52,7 @@ public class StoichiometryIT {
     assertEquals(MoleculeRole.REACTANT, firstReactant.getRole());
     assertEquals(3, firstReactant.getAtomCount());
     assertEquals(2, firstReactant.getBondCount());
-    assertEquals("C O2", firstReactant.getFormula());
+    assertEquals("C H2 O2", firstReactant.getFormula());
 
     List<Molecule> products = result.getProducts();
     assertEquals(2, products.size());
@@ -61,7 +61,7 @@ public class StoichiometryIT {
     assertEquals(MoleculeRole.PRODUCT, product.getRole());
     assertEquals(5, product.getAtomCount());
     assertEquals(4, product.getBondCount());
-    assertEquals("C3 O2", product.getFormula());
+    assertEquals("C3 H6 O2", product.getFormula());
   }
 
   @Test
