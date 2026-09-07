@@ -7,7 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -27,11 +27,11 @@ public class ConvertControllerTest {
     when(convertService.convert(any())).thenReturn(smiles);
     String validRequestBody =
         """
-            {
-                "outputFormat": "cdxml",
-                "input": "CCC"
-            }
-            """;
+        {
+            "outputFormat": "cdxml",
+            "input": "CCC"
+        }
+        """;
 
     mockMvc
         .perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON).content(validRequestBody))
@@ -59,10 +59,10 @@ public class ConvertControllerTest {
   void whenRequestMissingField_thenReturns400() throws Exception {
     String requestWithMissingField =
         """
-            {
-                "outputFormat": "cdxml"
-            }
-            """;
+        {
+            "outputFormat": "cdxml"
+        }
+        """;
 
     mockMvc
         .perform(

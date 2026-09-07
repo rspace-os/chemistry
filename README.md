@@ -5,7 +5,8 @@ Provides functionality for converting chemical formats, extracting information f
 exporting to image and chemical search.
 
 ## Dependencies
-The app has been developed with Java 21.
+Build with Maven 3.9.16 and JDK 25.
+The app targets Java 25; the Docker and Compose images run Java 25.
 
 It is recommended to run with Docker, as the Docker image already has OpenBabel installed.
 

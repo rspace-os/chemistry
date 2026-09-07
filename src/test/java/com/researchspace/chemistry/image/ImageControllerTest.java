@@ -8,7 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -28,12 +28,12 @@ public class ImageControllerTest {
     when(imageService.exportImage(any())).thenReturn(results);
     String validRequestBody =
         """
-            {
-                "input": "CCC",
-                "inputFormat": "smiles",
-                "outputFormat": "png"
-            }
-            """;
+        {
+            "input": "CCC",
+            "inputFormat": "smiles",
+            "outputFormat": "png"
+        }
+        """;
 
     mockMvc
         .perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON).content(validRequestBody))
@@ -61,10 +61,10 @@ public class ImageControllerTest {
   void whenIncorrectRequestField_thenReturns400() throws Exception {
     String requestWithIncorrectField =
         """
-            {
-                "someString": "abc"
-            }
-            """;
+        {
+            "someString": "abc"
+        }
+        """;
 
     mockMvc
         .perform(
