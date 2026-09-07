@@ -11,7 +11,7 @@ import com.researchspace.chemistry.analysis.ChemicalAnalyser;
 import com.researchspace.chemistry.extract.ExtractionResult;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -30,10 +30,10 @@ public class StoichiometryControllerTest {
     when(chemicalAnalyser.analyse(any(), eq(true))).thenReturn(result);
     String validRequestBody =
         """
-            {
-                "input": "(C(=O)O).(OCC)>>(C(=O)OCC).(O)"
-            }
-            """;
+        {
+            "input": "(C(=O)O).(OCC)>>(C(=O)OCC).(O)"
+        }
+        """;
 
     mockMvc
         .perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON).content(validRequestBody))
@@ -61,10 +61,10 @@ public class StoichiometryControllerTest {
   void whenIncorrectMissingField_thenReturns400() throws Exception {
     String requestWithMissingField =
         """
-            {
-                "someString": "abc"
-            }
-            """;
+        {
+            "someString": "abc"
+        }
+        """;
 
     mockMvc
         .perform(

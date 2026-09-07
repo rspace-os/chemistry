@@ -1,9 +1,9 @@
-FROM eclipse-temurin:21-jdk-noble AS builder
+FROM maven:3.9.16-eclipse-temurin-25 AS builder
 WORKDIR /home/app
 ADD . /home/app/chemistry
-RUN cd chemistry && ./mvnw -Dmaven.test.skip=true -Djar.finalName=chemistry clean package
+RUN cd chemistry && mvn -B -ntp -Dmaven.test.skip=true -Djar.finalName=chemistry clean package
 
-FROM eclipse-temurin:21-jre-noble
+FROM eclipse-temurin:25-jre-noble
 RUN apt-get update \
   && apt-get install --yes --quiet --no-install-recommends openbabel\
   && apt-get clean && rm -rf /var/lib/apt/lists/* \
