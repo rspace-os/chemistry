@@ -92,7 +92,16 @@ Search is performed against `nonIndexedChemicals.smi` and the OpenBabel fastsear
 
 Indexing runs as a scheduled task (by default once per day at midnight) and re-generates `fastSearchChemicals.fs` from `chemicalsMaster.smi` so that all newly added chemicals are indexed, and then clears `nonIndexedChemicals.smi`.
 
-## Swagger
-Auto-generated swagger documentation is available at (by default) `http://localhost:8090/swagger-ui/index.html`
+## API documentation
 
+Interactive Scalar documentation is available at `http://localhost:8090/api-docs`.
+The generated OpenAPI document is at `/v3/api-docs`. The previous `/swagger-ui.html`
+and `/swagger-ui/index.html` URLs redirect to Scalar. All paths include the servlet
+context path when one is configured.
 
+Scalar's browser assets are bundled in the application. The request button calls this
+Chemistry service directly.
+
+Springdoc generates the OpenAPI specification. The direct Scalar WebMVC dependency
+provides the bundled API Reference. Upgrade Scalar independently and rerun the
+documentation tests and browser checks.
