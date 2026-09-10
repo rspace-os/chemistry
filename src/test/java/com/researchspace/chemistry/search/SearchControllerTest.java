@@ -13,7 +13,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -37,10 +37,10 @@ public class SearchControllerTest {
     when(searchService.search(any())).thenReturn(results);
     String validRequestBody =
         """
-            {
-                "chemicalSearchTerm": "CCC"
-            }
-            """;
+        {
+            "chemicalSearchTerm": "CCC"
+        }
+        """;
 
     mockMvc
         .perform(
@@ -70,10 +70,10 @@ public class SearchControllerTest {
   void whenIncorrectSearchField_thenReturns400() throws Exception {
     String requestWithIncorrectField =
         """
-            {
-                "someString": "abc"
-            }
-            """;
+        {
+            "someString": "abc"
+        }
+        """;
 
     mockMvc
         .perform(
@@ -87,11 +87,11 @@ public class SearchControllerTest {
   void whenValidSaveRequest_thenReturns200AndResult() throws Exception {
     String validRequestBody =
         """
-            {
-                "chemical": "CCC",
-                "chemicalId": "123"
-            }
-            """;
+        {
+            "chemical": "CCC",
+            "chemicalId": "123"
+        }
+        """;
 
     mockMvc
         .perform(
@@ -121,10 +121,10 @@ public class SearchControllerTest {
   void whenIncorrectSaveField_thenReturns400() throws Exception {
     String requestWithIncorrectField =
         """
-            {
-                "someString": "abc"
-            }
-            """;
+        {
+            "someString": "abc"
+        }
+        """;
 
     mockMvc
         .perform(
