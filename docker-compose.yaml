@@ -1,5 +1,7 @@
 services:
     rspace-chemistry:
+        ports:
+          - '127.0.0.1:8090:8090'
         image: 'rspaceops/oss-chemistry:latest'
         restart: always
         volumes:
