@@ -5,7 +5,7 @@ services:
         image: 'rspaceops/oss-chemistry:latest'
         restart: always
         volumes:
-            - 'chemistry-files:/home/app'
+            - 'chemistry-files:/home/app/chemistry/data'
         container_name: rspace-chemistry
 volumes:
   chemistry-files:
