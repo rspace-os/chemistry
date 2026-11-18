@@ -31,8 +31,8 @@ On its own, for development (Python 3.13):
   has the enthalpy (`bde`) and free energy (`bdfe`) in kcal/mol and kJ/mol. An unsupported row has
   `unsupportedReason` (`RING_BOND`, `MULTIPLE_BOND`, `BOND_TYPE_NOT_COVERED`, `LOW_CONFIDENCE`) and
   no values.
-- `imageSvg`: the structure with atom numbers, values in kcal/mol on the bonds between heavy
-  atoms, and the weakest bond highlighted.
+- `imageSvg`: the structure with atom numbers, values in whole kcal/mol on the bonds between
+  heavy atoms, and the weakest bond highlighted.
 - `method`: model name and version, SHA-256 of the weights, training data, accuracy and library
   versions.
 

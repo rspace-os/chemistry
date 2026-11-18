@@ -28,6 +28,8 @@ BOND_SYMBOLS = {
     Chem.BondType.AROMATIC: ":",
 }
 WEAKEST_COLOUR = (1.0, 0.55, 0.55)
+# The library's default for bond notes is a pale blue that is hard to read on white.
+BOND_VALUE_COLOUR = (0.1, 0.2, 0.6)
 
 
 class InvalidStructure(ValueError):
@@ -232,7 +234,7 @@ class BondStrengthPredictor:
                 continue
             if row["hydrogenCount"] is None:
                 bond = drawing.GetBondBetweenAtoms(row["atoms"][0] - 1, row["atoms"][1] - 1)
-                bond.SetProp("bondNote", f"{row['bdeKcalMol']:.1f}")
+                bond.SetProp("bondNote", f"{row['bdeKcalMol']:.0f}")
                 if row["weakest"]:
                     highlight_bonds.append(bond.GetIdx())
             elif row["weakest"]:
@@ -242,6 +244,7 @@ class BondStrengthPredictor:
         options = canvas.drawOptions()
         options.annotationFontScale = 0.65
         options.setHighlightColour(WEAKEST_COLOUR)
+        options.setBondNoteColour(BOND_VALUE_COLOUR)
         rdMolDraw2D.PrepareAndDrawMolecule(
             canvas, drawing, highlightAtoms=highlight_atoms, highlightBonds=highlight_bonds
         )
