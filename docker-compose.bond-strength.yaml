@@ -1,0 +1,16 @@
+# Adds the bond strength model service and builds both images from this checkout.
+# Use together with the main file:
+#   docker compose -f docker-compose.yaml -f docker-compose.bond-strength.yaml up --build
+services:
+    rspace-chemistry:
+        build: .
+        image: 'rspace-chemistry:bond-strength-poc'
+        environment:
+            BONDSTRENGTH_SERVICE_URL: 'http://rspace-bond-strength:8000'
+        depends_on:
+            - rspace-bond-strength
+    rspace-bond-strength:
+        build: ./bond-strength
+        image: 'rspace-bond-strength:poc'
+        restart: always
+        container_name: rspace-bond-strength

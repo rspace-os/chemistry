@@ -1,0 +1,86 @@
+import pytest
+from fastapi.testclient import TestClient
+from rdkit import Chem
+
+from app import app
+
+
+@pytest.fixture(scope="module")
+def client():
+    with TestClient(app) as c:
+        yield c
+
+
+def molfile(smiles: str) -> str:
+    return Chem.MolToMolBlock(Chem.MolFromSmiles(smiles))
+
+
+def predict(client, smiles: str) -> dict:
+    response = client.post("/predict", json={"molfile": molfile(smiles)})
+    assert response.status_code == 200
+    return response.json()
+
+
+def by_label(result: dict) -> dict:
+    return {b["label"]: b for b in result["bonds"]}
+
+
+def test_ethanol_values_are_close_to_the_dft_reference(client):
+    result = predict(client, "CCO")
+    bonds = by_label(result)
+
+    assert result["supported"] is True
+    assert set(bonds) == {"C1-C2", "C2-O3", "C1-H", "C2-H", "O3-H"}
+    assert bonds["C1-C2"]["bdeKcalMol"] == pytest.approx(87.3, abs=2)
+    assert bonds["C2-O3"]["bdeKcalMol"] == pytest.approx(94.8, abs=2)
+    assert bonds["O3-H"]["bdeKcalMol"] == pytest.approx(103.5, abs=2)
+    assert bonds["C1-H"]["hydrogenCount"] == 3
+    assert bonds["C1-C2"]["bdeKjMol"] == pytest.approx(bonds["C1-C2"]["bdeKcalMol"] * 4.184, abs=0.3)
+    assert [b["label"] for b in result["bonds"] if b["weakest"]] == ["C1-C2"]
+    assert result["supportedBondCount"] == result["totalBondCount"] == 8
+    assert result["imageSvg"].startswith("<?xml")
+    assert len(result["method"]["weightsSha256"]) == 64
+
+
+def test_ring_and_multiple_bonds_get_a_reason_not_a_value(client):
+    bonds = by_label(predict(client, "C=CC1CC1"))
+
+    assert bonds["C1=C2"]["unsupportedReason"] == "MULTIPLE_BOND"
+    assert bonds["C3-C4"]["unsupportedReason"] == "RING_BOND"
+    assert bonds["C1=C2"]["bdeKcalMol"] is None
+    assert bonds["C2-C3"]["supported"] is True
+
+
+def test_bond_type_with_little_training_data_is_not_covered(client):
+    bonds = by_label(predict(client, "CCBr"))
+
+    assert bonds["C2-Br3"]["unsupportedReason"] == "BOND_TYPE_NOT_COVERED"
+    assert bonds["C1-C2"]["supported"] is True
+
+
+@pytest.mark.parametrize(
+    "smiles, reason",
+    [
+        ("C[Si](C)(C)C", "ELEMENT_NOT_COVERED"),
+        ("CC(=O)[O-]", "CHARGED"),
+        ("CCO.CC", "MULTIPLE_FRAGMENTS"),
+        ("C[CH2]", "RADICAL"),
+    ],
+)
+def test_whole_structure_not_supported(client, smiles, reason):
+    result = predict(client, smiles)
+
+    assert result["supported"] is False
+    assert result["unsupportedReason"] == reason
+    assert result["bonds"] == []
+    assert result["imageSvg"] is None
+
+
+def test_charge_separated_neutral_group_is_supported(client):
+    assert predict(client, "C[N+](=O)[O-]")["supported"] is True
+
+
+def test_unreadable_structure_is_rejected(client):
+    response = client.post("/predict", json={"molfile": "not a molfile"})
+
+    assert response.status_code == 422

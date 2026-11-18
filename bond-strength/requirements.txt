@@ -1,0 +1,6 @@
+chemprop==2.3.1
+torch==2.15.0
+rdkit==2026.9.2
+numpy==2.5.5
+fastapi==0.163.2
+uvicorn==0.54.0

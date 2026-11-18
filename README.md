@@ -92,6 +92,15 @@ Search is performed against `nonIndexedChemicals.smi` and the OpenBabel fastsear
 
 Indexing runs as a scheduled task (by default once per day at midnight) and re-generates `fastSearchChemicals.fs` from `chemicalsMaster.smi` so that all newly added chemicals are indexed, and then clears `nonIndexedChemicals.smi`.
 
+### Bond strengths (proof of concept)
+`POST /chemistry/bondStrengths` takes a molecule in any format Indigo can load and returns a predicted
+bond dissociation enthalpy for each bond. The prediction is made by a separate model service in
+[`bond-strength/`](bond-strength/README.md), which runs as a second container. Set
+`bondstrength.service.url` (environment variable `BONDSTRENGTH_SERVICE_URL`) to its address; the endpoint
+answers 503 while it is empty. To build and run both containers from this checkout:
+
+`docker compose -f docker-compose.yaml -f docker-compose.bond-strength.yaml up --build`
+
 ## API documentation
 
 Interactive Scalar documentation is available at `http://localhost:8090/api-docs`.
