@@ -1,6 +1,6 @@
 {
   "name": "RSpace bond strength model",
-  "version": "0.2.0-poc",
+  "version": "0.2.0",
   "weightsFile": "best.pt",
   "quantity": "Homolytic bond dissociation enthalpy at 298 K",
   "trainingData": "BDE-db2 (CC BY 4.0), https://doi.org/10.6084/m9.figshare.19367051",
