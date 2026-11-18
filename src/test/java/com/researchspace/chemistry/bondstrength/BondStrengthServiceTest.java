@@ -44,6 +44,19 @@ class BondStrengthServiceTest {
   }
 
   @Test
+  void atomsAreSentInInputOrder() {
+    modelService
+        .expect(requestTo(MODEL_URL + "/predict"))
+        .andExpect(
+            jsonPath(
+                "$.molfile", Matchers.stringContainsInOrder(" Cl ", " C ", " C ", " N ", " O ")))
+        .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
+
+    service.predict("ClCC(N)=O");
+    modelService.verify();
+  }
+
+  @Test
   void reactionIsReportedAsNotSupportedWithoutCallingTheModelService() {
     assertEquals(BondStrengthService.REACTION_NOT_SUPPORTED, service.predict(REACTION));
     modelService.verify();

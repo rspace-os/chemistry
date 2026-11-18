@@ -17,7 +17,7 @@ On its own, for development (Python 3.13):
 
     pip install -r requirements-dev.txt
     uvicorn app:app --port 8000
-    pytest
+    python -m pytest
 
 ## API
 
@@ -54,8 +54,8 @@ bonds and catches 15 of the 25 predictions that are wrong by more than 10 kcal/m
   DFT reference values (M06-2X/def2-TZVP). It has not been checked against experiment.
 - Covered: single bonds outside rings, between C, H, N, O, S, F, Cl, P and I, for element pairs
   with at least 300 bonds in the training data (`bondTypes` in `metadata.json`).
-- Not covered: ring bonds, multiple bonds, ions, radicals, other elements. Breaking one ring bond
-  does not give two fragments, so the quantity is not defined there.
+- Not covered: ring bonds, multiple bonds, ions, zwitterions, radicals, other elements. Breaking
+  one ring bond does not give two fragments, so the quantity is not defined there.
 
 ## Known limits
 

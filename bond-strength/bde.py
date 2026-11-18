@@ -9,6 +9,7 @@ configured limit the bond is reported as low confidence, again without a value.
 
 import hashlib
 import json
+from decimal import ROUND_HALF_UP, Decimal
 from importlib.metadata import version
 from pathlib import Path
 
@@ -93,7 +94,7 @@ class BondStrengthPredictor:
             result.update(supported=False, unsupportedReason=reason, unsupportedDetail=detail)
             return result
 
-        with_hydrogens = Chem.AddHs(mol)
+        with_hydrogens = _add_hydrogens(mol)
         predictions = self._predict(self.model, with_hydrogens)
         check = self._predict(self.check_model, with_hydrogens)
         bonds = self._heavy_atom_bonds(with_hydrogens, predictions, check)
@@ -117,8 +118,9 @@ class BondStrengthPredictor:
             return "MULTIPLE_FRAGMENTS", None
         if any(a.GetNumRadicalElectrons() for a in mol.GetAtoms()):
             return "RADICAL", None
-        # Charge-separated neutral groups (nitro, N-oxide, azide) are in the training data; ions are not.
-        if Chem.GetFormalCharge(mol) != 0:
+        # Charge-separated neutral groups (nitro, N-oxide, azide) are in the training data; ions and
+        # zwitterions are not.
+        if Chem.GetFormalCharge(mol) != 0 or any(_is_lone_charge(a) for a in mol.GetAtoms()):
             return "CHARGED", None
         if mol.GetNumHeavyAtoms() > MAX_HEAVY_ATOMS:
             return "TOO_LARGE", str(MAX_HEAVY_ATOMS)
@@ -234,7 +236,7 @@ class BondStrengthPredictor:
                 continue
             if row["hydrogenCount"] is None:
                 bond = drawing.GetBondBetweenAtoms(row["atoms"][0] - 1, row["atoms"][1] - 1)
-                bond.SetProp("bondNote", f"{row['bdeKcalMol']:.0f}")
+                bond.SetProp("bondNote", _whole_number(row["bdeKcalMol"]))
                 if row["weakest"]:
                     highlight_bonds.append(bond.GetIdx())
             elif row["weakest"]:
@@ -256,6 +258,26 @@ def _load(weights: Path):
     model = MolAtomBondMPNN.load_from_file(weights, map_location="cpu")
     model.eval()
     return model
+
+
+def _add_hydrogens(mol):
+    """Hydrogens drawn as atoms get hybridisation S from RDKit, but the model was trained on added
+    hydrogens, which have none. Left alone, a drawn hydrogen changes the predictions."""
+    with_hydrogens = Chem.AddHs(mol)
+    for atom in with_hydrogens.GetAtoms():
+        if atom.GetAtomicNum() == 1:
+            atom.SetHybridization(Chem.HybridizationType.UNSPECIFIED)
+    return with_hydrogens
+
+
+def _is_lone_charge(atom) -> bool:
+    charge = atom.GetFormalCharge()
+    return charge != 0 and not any(n.GetFormalCharge() * charge < 0 for n in atom.GetNeighbors())
+
+
+def _whole_number(value: float) -> str:
+    """Rounds half up, as the table in RSpace does, so the picture and the table agree."""
+    return str(Decimal(str(value)).quantize(Decimal(1), rounding=ROUND_HALF_UP))
 
 
 def _has_no_layout(mol) -> bool:

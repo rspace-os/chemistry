@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 from rdkit import Chem
 
 from app import app
+from bde import _whole_number
 
 
 @pytest.fixture(scope="module")
@@ -15,10 +16,21 @@ def molfile(smiles: str) -> str:
     return Chem.MolToMolBlock(Chem.MolFromSmiles(smiles))
 
 
-def predict(client, smiles: str) -> dict:
-    response = client.post("/predict", json={"molfile": molfile(smiles)})
+def molfile_with_drawn_hydrogens(smiles: str) -> str:
+    """Keeps the hydrogens that the SMILES writes as atoms."""
+    params = Chem.SmilesParserParams()
+    params.removeHs = False
+    return Chem.MolToMolBlock(Chem.MolFromSmiles(smiles, params))
+
+
+def predict_molfile(client, molfile: str) -> dict:
+    response = client.post("/predict", json={"molfile": molfile})
     assert response.status_code == 200
     return response.json()
+
+
+def predict(client, smiles: str) -> dict:
+    return predict_molfile(client, molfile(smiles))
 
 
 def by_label(result: dict) -> dict:
@@ -63,8 +75,10 @@ def test_bond_type_with_little_training_data_is_not_covered(client):
     [
         ("C[Si](C)(C)C", "ELEMENT_NOT_COVERED"),
         ("CC(=O)[O-]", "CHARGED"),
+        ("[NH3+]CC(=O)[O-]", "CHARGED"),
         ("CCO.CC", "MULTIPLE_FRAGMENTS"),
         ("C[CH2]", "RADICAL"),
+        pytest.param("C" * 151, "TOO_LARGE", id="151 heavy atoms"),
     ],
 )
 def test_whole_structure_not_supported(client, smiles, reason):
@@ -83,8 +97,37 @@ def test_value_the_second_model_disagrees_with_is_low_confidence(client):
     assert bonds["C1-H"]["bdeKcalMol"] is None
 
 
-def test_charge_separated_neutral_group_is_supported(client):
-    assert predict(client, "C[N+](=O)[O-]")["supported"] is True
+@pytest.mark.parametrize(
+    "smiles",
+    [
+        pytest.param("C[N+](=O)[O-]", id="nitro"),
+        pytest.param("C[N+](C)(C)[O-]", id="N-oxide"),
+        pytest.param("CN=[N+]=[N-]", id="azide"),
+        pytest.param("C" * 150, id="150 heavy atoms"),
+    ],
+)
+def test_whole_structure_supported(client, smiles):
+    assert predict(client, smiles)["supported"] is True
+
+
+@pytest.mark.parametrize(
+    "smiles, with_drawn_hydrogens",
+    [
+        pytest.param("CCO", "C(C(O[H])([H])[H])([H])([H])[H]", id="every hydrogen drawn"),
+        pytest.param("CC(O)CC", "CC(O)(CC)[H]", id="one hydrogen drawn"),
+    ],
+)
+def test_drawn_hydrogens_do_not_change_the_values(client, smiles, with_drawn_hydrogens):
+    drawn = predict_molfile(client, molfile_with_drawn_hydrogens(with_drawn_hydrogens))
+
+    assert drawn["bonds"] == predict(client, smiles)["bonds"]
+
+
+@pytest.mark.parametrize(
+    "value, shown", [(84.5, "85"), (85.5, "86"), (84.4, "84"), (87.0, "87"), (100.5, "101")]
+)
+def test_picture_rounds_half_up_like_the_table(value, shown):
+    assert _whole_number(value) == shown
 
 
 def test_unreadable_structure_is_rejected(client):
