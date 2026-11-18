@@ -94,10 +94,10 @@ def test_whole_structure_not_supported(client, smiles, reason):
 
 
 def test_value_the_second_model_disagrees_with_is_low_confidence(client):
-    bonds = by_label(predict(client, "c1ccccc1"))
+    bonds = by_label(predict(client, "c1ccncc1"))
 
-    assert bonds["C1-H"]["unsupportedReason"] == "LOW_CONFIDENCE"
-    assert bonds["C1-H"]["bdeKcalMol"] is None
+    assert bonds["C3-H"]["unsupportedReason"] == "LOW_CONFIDENCE"
+    assert bonds["C3-H"]["bdeKcalMol"] is None
 
 
 @pytest.mark.parametrize(

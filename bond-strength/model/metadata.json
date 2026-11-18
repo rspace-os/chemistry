@@ -1,11 +1,11 @@
 {
   "name": "RSpace bond strength model",
-  "version": "0.1.0-poc",
+  "version": "0.2.0-poc",
   "weightsFile": "best.pt",
   "quantity": "Homolytic bond dissociation enthalpy at 298 K",
   "trainingData": "BDE-db2 (CC BY 4.0), https://doi.org/10.6084/m9.figshare.19367051",
   "referenceMethod": "DFT, M06-2X/def2-TZVP",
-  "meanAbsoluteErrorKcalMol": 0.8,
+  "meanAbsoluteErrorKcalMol": 0.73,
   "accuracyNote": "Mean absolute error against the DFT reference on the BDE-db2 test set (1,000 molecules). Not validated against experiment.",
   "elements": [
     "C",

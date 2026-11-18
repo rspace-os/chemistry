@@ -48,10 +48,10 @@ configuration and `model/metadata.json` holds what the service reports about the
 
 `model/check.pt` is a second, smaller model trained the same way (`model/check-training-config.toml`,
 test error 1.22 kcal/mol). It is only used as a check: a bond where the two models differ by more
-than 5 kcal/mol is reported as `LOW_CONFIDENCE` with no value. On the test set that hides 2% of
-bonds and catches 15 of the 25 predictions that are wrong by more than 10 kcal/mol.
+than 5 kcal/mol is reported as `LOW_CONFIDENCE` with no value. On the test set that hides 2.4% of
+bonds and catches 13 of the 22 predictions that are wrong by more than 10 kcal/mol.
 
-- Mean absolute error on the test set (1,000 molecules, 12,586 bonds): 0.80 kcal/mol against the
+- Mean absolute error on the test set (1,000 molecules, 12,586 bonds): 0.73 kcal/mol against the
   DFT reference values (M06-2X/def2-TZVP). It has not been checked against experiment.
 - Covered: single bonds outside rings, between C, H, N, O, S, F, Cl, P and I, for element pairs
   with at least 300 bonds in the training data (`bondTypes` in `metadata.json`).
@@ -60,7 +60,8 @@ bonds and catches 15 of the 25 predictions that are wrong by more than 10 kcal/m
 
 ## Known limits
 
-- The confidence check is coarse. Without it, 25 of the 12,586 test bonds are wrong by more than
-  10 kcal/mol (the C-H bonds of unsubstituted benzene and pyridine come out 12 to 30 too low); it
-  catches those two molecules and 15 of the 25, not all.
+- The confidence check is coarse. Without it, 22 of the 12,586 test bonds are wrong by more than
+  10 kcal/mol; it catches 13 of them, not all. About two thirds of the bonds it hides were within
+  2 kcal/mol of the reference. Pyridine's C-H next to the nitrogen comes out about 11 too low and is
+  hidden.
 - Hydrogens on the same atom always get the same value, because the model sees the 2D graph only.
