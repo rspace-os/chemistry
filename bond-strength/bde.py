@@ -164,12 +164,14 @@ class BondStrengthPredictor:
             "weakest": False,
         }
         if problem is None:
+            # Not rounded here: whoever shows a value rounds it once. Rounding to one decimal first
+            # and to a whole number later turns 84.46 into 85.
             bde, bdfe = float(prediction[0]), float(prediction[1])
             row.update(
-                bdeKcalMol=round(bde, 1),
-                bdeKjMol=round(bde * KCAL_TO_KJ, 1),
-                bdfeKcalMol=round(bdfe, 1),
-                bdfeKjMol=round(bdfe * KCAL_TO_KJ, 1),
+                bdeKcalMol=bde,
+                bdeKjMol=bde * KCAL_TO_KJ,
+                bdfeKcalMol=bdfe,
+                bdfeKjMol=bdfe * KCAL_TO_KJ,
             )
         return row
 
@@ -276,7 +278,7 @@ def _is_lone_charge(atom) -> bool:
 
 
 def _whole_number(value: float) -> str:
-    """Rounds half up, as the table in RSpace does, so the picture and the table agree."""
+    """Rounds half up, as the table in RSpace does with the same value, so the two agree."""
     return str(Decimal(str(value)).quantize(Decimal(1), rounding=ROUND_HALF_UP))
 
 

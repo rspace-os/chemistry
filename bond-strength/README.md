@@ -30,7 +30,8 @@ On its own, for development (Python 3.13):
   hydrogens (`hydrogenCount`). Atom numbers are 1-based and follow the molfile. A supported row
   has the enthalpy (`bde`) and free energy (`bdfe`) in kcal/mol and kJ/mol. An unsupported row has
   `unsupportedReason` (`RING_BOND`, `MULTIPLE_BOND`, `BOND_TYPE_NOT_COVERED`, `LOW_CONFIDENCE`) and
-  no values.
+  no values. Values are not rounded. Round once, half up, when showing them; the picture does the
+  same, so a table built from the response agrees with it.
 - `imageSvg`: the structure with atom numbers, values in whole kcal/mol on the bonds between
   heavy atoms, and the weakest bond highlighted.
 - `method`: model name and version, SHA-256 of the weights, training data, accuracy and library

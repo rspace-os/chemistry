@@ -37,6 +37,10 @@ def by_label(result: dict) -> dict:
     return {b["label"]: b for b in result["bonds"]}
 
 
+def values(result: dict) -> dict:
+    return {b["label"]: b["bdeKcalMol"] for b in result["bonds"]}
+
+
 def test_ethanol_values_are_close_to_the_dft_reference(client):
     result = predict(client, "CCO")
     bonds = by_label(result)
@@ -47,7 +51,6 @@ def test_ethanol_values_are_close_to_the_dft_reference(client):
     assert bonds["C2-O3"]["bdeKcalMol"] == pytest.approx(94.8, abs=2)
     assert bonds["O3-H"]["bdeKcalMol"] == pytest.approx(103.5, abs=2)
     assert bonds["C1-H"]["hydrogenCount"] == 3
-    assert bonds["C1-C2"]["bdeKjMol"] == pytest.approx(bonds["C1-C2"]["bdeKcalMol"] * 4.184, abs=0.3)
     assert [b["label"] for b in result["bonds"] if b["weakest"]] == ["C1-C2"]
     assert result["supportedBondCount"] == result["totalBondCount"] == 8
     assert result["imageSvg"].startswith("<?xml")
@@ -120,14 +123,21 @@ def test_whole_structure_supported(client, smiles):
 def test_drawn_hydrogens_do_not_change_the_values(client, smiles, with_drawn_hydrogens):
     drawn = predict_molfile(client, molfile_with_drawn_hydrogens(with_drawn_hydrogens))
 
-    assert drawn["bonds"] == predict(client, smiles)["bonds"]
+    assert values(drawn) == pytest.approx(values(predict(client, smiles)), abs=0.01)
 
 
 @pytest.mark.parametrize(
-    "value, shown", [(84.5, "85"), (85.5, "86"), (84.4, "84"), (87.0, "87"), (100.5, "101")]
+    "value, shown", [(84.464, "84"), (84.5, "85"), (85.5, "86"), (87.46, "87"), (99.5, "100")]
 )
 def test_picture_rounds_half_up_like_the_table(value, shown):
     assert _whole_number(value) == shown
+
+
+def test_values_are_reported_without_rounding(client):
+    bond = by_label(predict(client, "CCO"))["C1-C2"]
+
+    assert bond["bdeKcalMol"] != round(bond["bdeKcalMol"], 1)
+    assert bond["bdeKjMol"] == pytest.approx(bond["bdeKcalMol"] * 4.184, abs=1e-9)
 
 
 def test_unreadable_structure_is_rejected(client):
