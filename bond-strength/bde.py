@@ -2,6 +2,9 @@
 
 The model returns a number for every bond, including kinds it never saw in training (ring bonds,
 multiple bonds, rare element pairs). Those are reported as "not supported", never as a value.
+
+A second, independently trained model checks each value. Where the two disagree by more than the
+configured limit the bond is reported as low confidence, again without a value.
 """
 
 import hashlib
@@ -36,8 +39,11 @@ class BondStrengthPredictor:
         self.metadata = json.loads((model_dir / "metadata.json").read_text())
         weights = model_dir / self.metadata["weightsFile"]
         self.weights_sha256 = hashlib.sha256(weights.read_bytes()).hexdigest()
-        self.model = MolAtomBondMPNN.load_from_file(weights, map_location="cpu")
-        self.model.eval()
+        self.model = _load(weights)
+        check = model_dir / self.metadata["crossCheck"]["weightsFile"]
+        self.check_weights_sha256 = hashlib.sha256(check.read_bytes()).hexdigest()
+        self.check_model = _load(check)
+        self.max_difference = self.metadata["crossCheck"]["maxDifferenceKcalMol"]
         self.featurizer = featurizers.SimpleMoleculeMolGraphFeaturizer()
         self.elements = set(self.metadata["elements"])
         self.bond_types = set(self.metadata["bondTypes"])
@@ -54,6 +60,10 @@ class BondStrengthPredictor:
             "meanAbsoluteErrorKcalMol": m["meanAbsoluteErrorKcalMol"],
             "accuracyNote": m["accuracyNote"],
             "supportedElements": m["elements"],
+            "crossCheck": {
+                "weightsSha256": self.check_weights_sha256,
+                "maxDifferenceKcalMol": self.max_difference,
+            },
             "libraries": {
                 "chemprop": version("chemprop"),
                 "rdkit": version("rdkit"),
@@ -82,9 +92,10 @@ class BondStrengthPredictor:
             return result
 
         with_hydrogens = Chem.AddHs(mol)
-        predictions = self._predict(with_hydrogens)
-        bonds = self._heavy_atom_bonds(with_hydrogens, predictions)
-        bonds += self._hydrogen_bonds(with_hydrogens, predictions)
+        predictions = self._predict(self.model, with_hydrogens)
+        check = self._predict(self.check_model, with_hydrogens)
+        bonds = self._heavy_atom_bonds(with_hydrogens, predictions, check)
+        bonds += self._hydrogen_bonds(with_hydrogens, predictions, check)
 
         supported = [b for b in bonds if b["supported"]]
         if supported:
@@ -111,18 +122,18 @@ class BondStrengthPredictor:
             return "TOO_LARGE", str(MAX_HEAVY_ATOMS)
         return None, None
 
-    def _predict(self, mol):
+    def _predict(self, model, mol):
         """Returns one [enthalpy, free energy] pair in kcal/mol per bond, in RDKit bond order."""
         dataset = data.MolAtomBondDataset([data.MolAtomBondDatapoint(mol=mol)], self.featurizer)
         loader = data.build_dataloader(dataset, batch_size=1, shuffle=False, drop_last=False)
         with torch.inference_mode():
             for batch in loader:
                 bmg, V_d, E_d, X_d, *_, constraints = batch
-                _, _, bond_predictions = self.model(bmg, V_d, E_d, X_d, constraints)
+                _, _, bond_predictions = model(bmg, V_d, E_d, X_d, constraints)
                 return bond_predictions.numpy()
         return []
 
-    def _bond_problem(self, bond):
+    def _bond_problem(self, bond, prediction, check):
         if bond.IsInRing():
             return "RING_BOND"
         if bond.GetBondType() != Chem.BondType.SINGLE:
@@ -130,6 +141,8 @@ class BondStrengthPredictor:
         pair = "-".join(sorted([bond.GetBeginAtom().GetSymbol(), bond.GetEndAtom().GetSymbol()]))
         if pair not in self.bond_types:
             return "BOND_TYPE_NOT_COVERED"
+        if abs(float(prediction[0]) - float(check[0])) > self.max_difference:
+            return "LOW_CONFIDENCE"
         return None
 
     def _row(self, label, atoms, elements, hydrogen_count, problem, prediction):
@@ -156,7 +169,7 @@ class BondStrengthPredictor:
             )
         return row
 
-    def _heavy_atom_bonds(self, mol, predictions):
+    def _heavy_atom_bonds(self, mol, predictions, check):
         rows = []
         for bond in mol.GetBonds():
             a, b = bond.GetBeginAtom(), bond.GetEndAtom()
@@ -169,13 +182,13 @@ class BondStrengthPredictor:
                     [a.GetIdx() + 1, b.GetIdx() + 1],
                     [a.GetSymbol(), b.GetSymbol()],
                     None,
-                    self._bond_problem(bond),
+                    self._bond_problem(bond, predictions[bond.GetIdx()], check[bond.GetIdx()]),
                     predictions[bond.GetIdx()],
                 )
             )
         return rows
 
-    def _hydrogen_bonds(self, mol, predictions):
+    def _hydrogen_bonds(self, mol, predictions, check):
         """One row per heavy atom that carries hydrogens. Hydrogens on the same atom get the same
         prediction, because the model only sees the 2D graph."""
         rows = []
@@ -190,13 +203,14 @@ class BondStrengthPredictor:
             if not bonds:
                 continue
             mean = sum(predictions[b.GetIdx()] for b in bonds) / len(bonds)
+            check_mean = sum(check[b.GetIdx()] for b in bonds) / len(bonds)
             rows.append(
                 self._row(
                     f"{atom.GetSymbol()}{atom.GetIdx() + 1}-H",
                     [atom.GetIdx() + 1],
                     [atom.GetSymbol(), "H"],
                     len(bonds),
-                    self._bond_problem(bonds[0]),
+                    self._bond_problem(bonds[0], mean, check_mean),
                     mean,
                 )
             )
@@ -233,6 +247,12 @@ class BondStrengthPredictor:
         )
         canvas.FinishDrawing()
         return canvas.GetDrawingText()
+
+
+def _load(weights: Path):
+    model = MolAtomBondMPNN.load_from_file(weights, map_location="cpu")
+    model.eval()
+    return model
 
 
 def _has_no_layout(mol) -> bool:

@@ -43,10 +43,10 @@ def test_ethanol_values_are_close_to_the_dft_reference(client):
 
 
 def test_ring_and_multiple_bonds_get_a_reason_not_a_value(client):
-    bonds = by_label(predict(client, "C=CC1CC1"))
+    bonds = by_label(predict(client, "C=CCC1CCCCC1"))
 
     assert bonds["C1=C2"]["unsupportedReason"] == "MULTIPLE_BOND"
-    assert bonds["C3-C4"]["unsupportedReason"] == "RING_BOND"
+    assert bonds["C4-C5"]["unsupportedReason"] == "RING_BOND"
     assert bonds["C1=C2"]["bdeKcalMol"] is None
     assert bonds["C2-C3"]["supported"] is True
 
@@ -74,6 +74,13 @@ def test_whole_structure_not_supported(client, smiles, reason):
     assert result["unsupportedReason"] == reason
     assert result["bonds"] == []
     assert result["imageSvg"] is None
+
+
+def test_value_the_second_model_disagrees_with_is_low_confidence(client):
+    bonds = by_label(predict(client, "c1ccccc1"))
+
+    assert bonds["C1-H"]["unsupportedReason"] == "LOW_CONFIDENCE"
+    assert bonds["C1-H"]["bdeKcalMol"] is None
 
 
 def test_charge_separated_neutral_group_is_supported(client):

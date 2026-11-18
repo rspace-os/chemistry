@@ -29,7 +29,8 @@ On its own, for development (Python 3.13):
 - `bonds`: one row per bond between heavy atoms, and one row per heavy atom that carries
   hydrogens (`hydrogenCount`). Atom numbers are 1-based and follow the molfile. A supported row
   has the enthalpy (`bde`) and free energy (`bdfe`) in kcal/mol and kJ/mol. An unsupported row has
-  `unsupportedReason` (`RING_BOND`, `MULTIPLE_BOND`, `BOND_TYPE_NOT_COVERED`) and no values.
+  `unsupportedReason` (`RING_BOND`, `MULTIPLE_BOND`, `BOND_TYPE_NOT_COVERED`, `LOW_CONFIDENCE`) and
+  no values.
 - `imageSvg`: the structure with atom numbers, values in kcal/mol on the bonds between heavy
   atoms, and the weakest bond highlighted.
 - `method`: model name and version, SHA-256 of the weights, training data, accuracy and library
@@ -44,6 +45,11 @@ On its own, for development (Python 3.13):
 dataset's own train, validation and test split. `model/training-config.toml` is the training
 configuration and `model/metadata.json` holds what the service reports about the model.
 
+`model/check.pt` is a second, smaller model trained the same way (`model/check-training-config.toml`,
+test error 1.22 kcal/mol). It is only used as a check: a bond where the two models differ by more
+than 5 kcal/mol is reported as `LOW_CONFIDENCE` with no value. On the test set that hides 2% of
+bonds and catches 15 of the 25 predictions that are wrong by more than 10 kcal/mol.
+
 - Mean absolute error on the test set (1,000 molecules, 12,586 bonds): 0.80 kcal/mol against the
   DFT reference values (M06-2X/def2-TZVP). It has not been checked against experiment.
 - Covered: single bonds outside rings, between C, H, N, O, S, F, Cl, P and I, for element pairs
@@ -53,7 +59,7 @@ configuration and `model/metadata.json` holds what the service reports about the
 
 ## Known limits
 
-- There is no confidence check. A few predictions are far off: 25 of the 12,586 test bonds are
-  wrong by more than 10 kcal/mol, and the C-H bonds of unsubstituted benzene and pyridine come out
-  12 to 30 kcal/mol too low.
+- The confidence check is coarse. Without it, 25 of the 12,586 test bonds are wrong by more than
+  10 kcal/mol (the C-H bonds of unsubstituted benzene and pyridine come out 12 to 30 too low); it
+  catches those two molecules and 15 of the 25, not all.
 - Hydrogens on the same atom always get the same value, because the model sees the 2D graph only.
