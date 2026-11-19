@@ -95,9 +95,11 @@ Indexing runs as a scheduled task (by default once per day at midnight) and re-g
 ### Bond strengths (proof of concept)
 `POST /chemistry/bondStrengths` takes a molecule in any format Indigo can load and returns a predicted
 bond dissociation enthalpy for each bond. The prediction is made by a separate model service in
-[`bond-strength/`](bond-strength/README.md), which runs as a second container. Set
-`bondstrength.service.url` (environment variable `BONDSTRENGTH_SERVICE_URL`) to its address; the endpoint
-answers 503 while it is empty. To build and run both containers from this checkout:
+[`bond-strength/`](bond-strength/README.md), which runs as a second container. The chemistry service
+expects it at `http://rspace-bond-strength:8000`, so run it on the same Docker network under that
+name. To use another address, set `bondstrength.service.url` (environment variable
+`BONDSTRENGTH_SERVICE_URL`); set it empty to turn the endpoint off (it then answers 503). To build and
+run both containers from this checkout:
 
 `docker compose -f docker-compose.yaml -f docker-compose.bond-strength.yaml up --build`
 

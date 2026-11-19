@@ -10,8 +10,9 @@ With the chemistry service, from the repo root:
 
     docker compose -f docker-compose.yaml -f docker-compose.bond-strength.yaml up --build
 
-The chemistry service finds it through `bondstrength.service.url` (environment variable
-`BONDSTRENGTH_SERVICE_URL`). When that is empty, `/chemistry/bondStrengths` answers 503.
+The chemistry service expects it at `http://rspace-bond-strength:8000` (the container name on the
+same Docker network). Override with `bondstrength.service.url` (environment variable
+`BONDSTRENGTH_SERVICE_URL`). When that is set empty, `/chemistry/bondStrengths` answers 503.
 
 On its own, for development (Python 3.13):
 

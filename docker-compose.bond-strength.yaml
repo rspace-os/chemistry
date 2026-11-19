@@ -5,8 +5,6 @@ services:
     rspace-chemistry:
         build: .
         image: 'rspace-chemistry:bond-strength-poc'
-        environment:
-            BONDSTRENGTH_SERVICE_URL: 'http://rspace-bond-strength:8000'
         depends_on:
             - rspace-bond-strength
     rspace-bond-strength:
