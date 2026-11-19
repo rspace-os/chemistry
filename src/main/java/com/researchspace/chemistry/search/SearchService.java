@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -32,6 +33,10 @@ public class SearchService {
 
   @Value("${search.file.dir}")
   private String outputDir;
+
+  // Indexing the whole chemicals file can take much longer than other OpenBabel commands
+  @Value("${search.index.timeout:1h}")
+  private Duration indexTimeout;
 
   private static final String CHEM_FILE_FORMAT = "smi";
 
@@ -211,7 +216,7 @@ public class SearchService {
         "indexing chemicals from {} to {}",
         chemicalsMaster.getPath(),
         fastSearchChemicals.getPath());
-    commandExecutor.executeCommand(builder);
+    commandExecutor.executeCommand(builder, indexTimeout);
 
     // clear the nonIndexChemicals file, entries from which have been indexed
     new PrintWriter(nonIndexedChemicals).close();
