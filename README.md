@@ -92,6 +92,13 @@ Search is performed against `nonIndexedChemicals.smi` and the OpenBabel fastsear
 
 Indexing runs as a scheduled task (by default once per day at midnight) and re-generates `fastSearchChemicals.fs` from `chemicalsMaster.smi` so that all newly added chemicals are indexed, and then clears `nonIndexedChemicals.smi`.
 
+### OpenBabel command timeouts
+OpenBabel commands that run for too long are killed, along with any processes they started, so one slow command
+can't hold up the service. The limits are set in `application.properties` (or as environment variables, e.g.
+`OPENBABEL_COMMAND_TIMEOUT=2m`):
+- `openbabel.command.timeout` (default `60s`) applies to conversion, image generation and search commands
+- `search.index.timeout` (default `1h`) applies to the scheduled indexing task, which can take much longer
+
 ## API documentation
 
 Interactive Scalar documentation is available at `http://localhost:8090/api-docs`.
