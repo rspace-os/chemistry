@@ -11,6 +11,6 @@ services:
             - rspace-bond-strength
     rspace-bond-strength:
         build: ./bond-strength
-        image: 'rspace-bond-strength:poc'
+        image: 'rspace-bond-strength:0.0.1'
         restart: always
         container_name: rspace-bond-strength
