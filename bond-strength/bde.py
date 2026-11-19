@@ -218,24 +218,9 @@ class BondStrengthPredictor:
     def _draw(self, mol, rows):
         """Draws the structure as given, with atom numbers, values in kcal/mol on the supported
         bonds between heavy atoms, and the weakest bond highlighted."""
-        drawing = Chem.Mol(mol)
+        drawing, highlight_atoms, highlight_bonds = _annotate(mol, rows)
         if drawing.GetNumConformers() == 0 or drawing.GetConformer().Is3D() or _has_no_layout(drawing):
             rdDepictor.Compute2DCoords(drawing)
-        for atom in drawing.GetAtoms():
-            if atom.GetAtomicNum() != 1:
-                atom.SetProp("atomNote", str(atom.GetIdx() + 1))
-
-        highlight_atoms, highlight_bonds = [], []
-        for row in rows:
-            if not row["supported"]:
-                continue
-            if row["hydrogenCount"] is None:
-                bond = drawing.GetBondBetweenAtoms(row["atoms"][0] - 1, row["atoms"][1] - 1)
-                bond.SetProp("bondNote", _whole_number(row["bdeKcalMol"]))
-                if row["weakest"]:
-                    highlight_bonds.append(bond.GetIdx())
-            elif row["weakest"]:
-                highlight_atoms.append(row["atoms"][0] - 1)
 
         canvas = rdMolDraw2D.MolDraw2DSVG(640, 480)
         options = canvas.drawOptions()
@@ -247,6 +232,28 @@ class BondStrengthPredictor:
         )
         canvas.FinishDrawing()
         return canvas.GetDrawingText()
+
+
+def _annotate(mol, rows):
+    """Returns a copy of the structure carrying the atom numbers and bond values the picture shows,
+    plus the atoms and bonds to highlight. A weakest X-H row highlights its heavy atom."""
+    drawing = Chem.Mol(mol)
+    for atom in drawing.GetAtoms():
+        if atom.GetAtomicNum() != 1:
+            atom.SetProp("atomNote", str(atom.GetIdx() + 1))
+
+    highlight_atoms, highlight_bonds = [], []
+    for row in rows:
+        if not row["supported"]:
+            continue
+        if row["hydrogenCount"] is None:
+            bond = drawing.GetBondBetweenAtoms(row["atoms"][0] - 1, row["atoms"][1] - 1)
+            bond.SetProp("bondNote", _whole_number(row["bdeKcalMol"]))
+            if row["weakest"]:
+                highlight_bonds.append(bond.GetIdx())
+        elif row["weakest"]:
+            highlight_atoms.append(row["atoms"][0] - 1)
+    return drawing, highlight_atoms, highlight_bonds
 
 
 def _load(weights: Path):

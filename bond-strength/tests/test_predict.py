@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 from rdkit import Chem
 
 from app import app
-from bde import _whole_number
+from bde import _annotate, _whole_number
 
 
 @pytest.fixture(scope="module")
@@ -133,6 +133,33 @@ def test_drawn_hydrogens_do_not_change_the_values(client, smiles, with_drawn_hyd
 )
 def test_picture_rounds_half_up_like_the_table(value, shown):
     assert _whole_number(value) == shown
+
+
+def picture(client, smiles: str):
+    result = predict(client, smiles)
+    return by_label(result), *_annotate(Chem.MolFromMolBlock(molfile(smiles)), result["bonds"])
+
+
+def test_picture_numbers_and_values_match_the_table(client):
+    bonds, drawing, highlight_atoms, highlight_bonds = picture(client, "CCO")
+
+    def note(begin, end):
+        return drawing.GetBondBetweenAtoms(begin - 1, end - 1).GetProp("bondNote")
+
+    assert [a.GetProp("atomNote") for a in drawing.GetAtoms()] == ["1", "2", "3"]
+    assert note(1, 2) == _whole_number(bonds["C1-C2"]["bdeKcalMol"])
+    assert note(2, 3) == _whole_number(bonds["C2-O3"]["bdeKcalMol"])
+    assert highlight_bonds == [drawing.GetBondBetweenAtoms(0, 1).GetIdx()]
+    assert highlight_atoms == []
+
+
+def test_picture_highlights_the_atom_when_the_weakest_bond_is_to_hydrogen(client):
+    bonds, drawing, highlight_atoms, highlight_bonds = picture(client, "Cc1ccccc1")
+
+    assert bonds["C1-H"]["weakest"] is True
+    assert highlight_atoms == [0]
+    assert highlight_bonds == []
+    assert not drawing.GetBondBetweenAtoms(1, 2).HasProp("bondNote")
 
 
 def test_values_are_reported_without_rounding(client):

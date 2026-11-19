@@ -44,7 +44,7 @@ public class BondStrengthService {
   }
 
   BondStrengthService(String serviceUrl, RestClient.Builder restClientBuilder) {
-    this.serviceUrl = serviceUrl;
+    this.serviceUrl = StringUtils.stripEnd(serviceUrl, "/");
     this.restClient = restClientBuilder.build();
   }
 

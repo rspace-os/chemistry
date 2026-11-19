@@ -53,8 +53,9 @@ bonds and catches 13 of the 22 predictions that are wrong by more than 10 kcal/m
 
 - Mean absolute error on the test set (1,000 molecules, 12,586 bonds): 0.73 kcal/mol against the
   DFT reference values (M06-2X/def2-TZVP). It has not been checked against experiment.
-- Covered: single bonds outside rings, between C, H, N, O, S, F, Cl, P and I, for element pairs
-  with at least 300 bonds in the training data (`bondTypes` in `metadata.json`).
+- Covered: single bonds outside rings, for element pairs with at least 300 bonds in the training
+  data (`bondTypes` in `metadata.json`). A structure may contain C, H, N, O, S, F, Cl, Br, P and I.
+  No Br pair has enough training data, so bonds to Br come back as `BOND_TYPE_NOT_COVERED`.
 - Not covered: ring bonds, multiple bonds, ions, zwitterions, radicals, other elements. Breaking
   one ring bond does not give two fragments, so the quantity is not defined there.
 - Charges are accepted only as N+ next to O- or N- (nitro, N-oxide, azide, diazo), the only charged

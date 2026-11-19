@@ -57,6 +57,18 @@ class BondStrengthServiceTest {
   }
 
   @Test
+  void trailingSlashInServiceUrlIsIgnored() {
+    RestClient.Builder builder = RestClient.builder();
+    MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+    server
+        .expect(requestTo(MODEL_URL + "/predict"))
+        .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
+
+    new BondStrengthService(MODEL_URL + "/", builder).predict("CCO");
+    server.verify();
+  }
+
+  @Test
   void reactionIsReportedAsNotSupportedWithoutCallingTheModelService() {
     assertEquals(BondStrengthService.REACTION_NOT_SUPPORTED, service.predict(REACTION));
     modelService.verify();
