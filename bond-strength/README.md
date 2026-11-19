@@ -28,7 +28,7 @@ On its own, for development (Python 3.13):
   `REACTION`.
 - `bonds`: one row per bond between heavy atoms, and one row per heavy atom that carries
   hydrogens (`hydrogenCount`). Atom numbers are 1-based and follow the molfile. A supported row
-  has the enthalpy (`bde`) and free energy (`bdfe`) in kcal/mol and kJ/mol. An unsupported row has
+  has the enthalpy (`bde`) in kcal/mol and kJ/mol. An unsupported row has
   `unsupportedReason` (`RING_BOND`, `MULTIPLE_BOND`, `BOND_TYPE_NOT_COVERED`, `LOW_CONFIDENCE`) and
   no values. Values are not rounded. Round once, half up, when showing them; the picture does the
   same, so a table built from the response agrees with it.
@@ -57,6 +57,9 @@ bonds and catches 13 of the 22 predictions that are wrong by more than 10 kcal/m
   with at least 300 bonds in the training data (`bondTypes` in `metadata.json`).
 - Not covered: ring bonds, multiple bonds, ions, zwitterions, radicals, other elements. Breaking
   one ring bond does not give two fragments, so the quantity is not defined there.
+- Charges are accepted only as N+ next to O- or N- (nitro, N-oxide, azide, diazo), the only charged
+  pairs in the training data. Anything else, such as an ylide or a sulfoxide drawn as S+ and O-, is
+  reported as `CHARGED`.
 
 ## Known limits
 

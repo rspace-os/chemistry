@@ -118,9 +118,7 @@ class BondStrengthPredictor:
             return "MULTIPLE_FRAGMENTS", None
         if any(a.GetNumRadicalElectrons() for a in mol.GetAtoms()):
             return "RADICAL", None
-        # Charge-separated neutral groups (nitro, N-oxide, azide) are in the training data; ions and
-        # zwitterions are not.
-        if Chem.GetFormalCharge(mol) != 0 or any(_is_lone_charge(a) for a in mol.GetAtoms()):
+        if Chem.GetFormalCharge(mol) != 0 or any(_is_untrained_charge(a) for a in mol.GetAtoms()):
             return "CHARGED", None
         if mol.GetNumHeavyAtoms() > MAX_HEAVY_ATOMS:
             return "TOO_LARGE", str(MAX_HEAVY_ATOMS)
@@ -159,20 +157,15 @@ class BondStrengthPredictor:
             "unsupportedReason": problem,
             "bdeKcalMol": None,
             "bdeKjMol": None,
-            "bdfeKcalMol": None,
-            "bdfeKjMol": None,
             "weakest": False,
         }
         if problem is None:
             # Not rounded here: whoever shows a value rounds it once. Rounding to one decimal first
             # and to a whole number later turns 84.46 into 85.
-            bde, bdfe = float(prediction[0]), float(prediction[1])
-            row.update(
-                bdeKcalMol=bde,
-                bdeKjMol=bde * KCAL_TO_KJ,
-                bdfeKcalMol=bdfe,
-                bdfeKjMol=bdfe * KCAL_TO_KJ,
-            )
+            # The model also predicts a free energy. It is not reported: its accuracy is not
+            # stated and the cross-check does not cover it.
+            bde = float(prediction[0])
+            row.update(bdeKcalMol=bde, bdeKjMol=bde * KCAL_TO_KJ)
         return row
 
     def _heavy_atom_bonds(self, mol, predictions, check):
@@ -272,9 +265,17 @@ def _add_hydrogens(mol):
     return with_hydrogens
 
 
-def _is_lone_charge(atom) -> bool:
+def _is_untrained_charge(atom) -> bool:
+    """The training data has charges only as N+ next to O- or N- (nitro, N-oxide, azide, diazo).
+    Ions, zwitterions and other charged pairs, such as ylides or a sulfoxide drawn as S+ and O-,
+    are not in it."""
     charge = atom.GetFormalCharge()
-    return charge != 0 and not any(n.GetFormalCharge() * charge < 0 for n in atom.GetNeighbors())
+    if charge == 0:
+        return False
+    own, partner = (("N",), ("N", "O")) if charge > 0 else (("N", "O"), ("N",))
+    return atom.GetSymbol() not in own or not any(
+        n.GetFormalCharge() * charge < 0 and n.GetSymbol() in partner for n in atom.GetNeighbors()
+    )
 
 
 def _whole_number(value: float) -> str:

@@ -79,6 +79,8 @@ def test_bond_type_with_little_training_data_is_not_covered(client):
         ("C[Si](C)(C)C", "ELEMENT_NOT_COVERED"),
         ("CC(=O)[O-]", "CHARGED"),
         ("[NH3+]CC(=O)[O-]", "CHARGED"),
+        pytest.param("[CH2-][N+](C)(C)C", "CHARGED", id="ylide"),
+        pytest.param("C[S+](C)[O-]", "CHARGED", id="sulfoxide drawn with charges"),
         ("CCO.CC", "MULTIPLE_FRAGMENTS"),
         ("C[CH2]", "RADICAL"),
         pytest.param("C" * 151, "TOO_LARGE", id="151 heavy atoms"),
