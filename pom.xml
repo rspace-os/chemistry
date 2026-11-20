@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>4.1.1</version>
+    <version>4.2.0</version>
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
   <groupId>com.github.rspace-os</groupId>
@@ -60,13 +60,13 @@
     <dependency>
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
-      <version>3.1.1</version>
+      <version>3.2.0</version>
     </dependency>
 
     <dependency>
       <groupId>com.scalar.maven</groupId>
       <artifactId>scalar-webmvc</artifactId>
-      <version>0.6.67</version>
+      <version>0.9.1</version>
     </dependency>
 
     <dependency>
@@ -78,7 +78,7 @@
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
-      <version>1.22.1</version>
+      <version>1.23.0</version>
     </dependency>
   </dependencies>
 
@@ -93,7 +93,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.6.0</version>
+        <version>3.6.1</version>
         <configuration>
           <argLine>
             -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
@@ -104,7 +104,7 @@
       <plugin>
         <groupId>com.diffplug.spotless</groupId>
         <artifactId>spotless-maven-plugin</artifactId>
-        <version>3.10.2</version>
+        <version>3.11.0</version>
         <configuration>
           <java>
             <googleJavaFormat>
@@ -125,7 +125,7 @@
       </plugin>
         <plugin>
           <artifactId>maven-failsafe-plugin</artifactId>
-          <version>3.6.0</version>
+          <version>3.6.1</version>
           <executions>
             <execution>
               <goals>

@@ -8,9 +8,11 @@ exporting to image and chemical search.
 Build with Maven 3.9.16 and JDK 25.
 The app targets Java 25; the Docker and Compose images run Java 25.
 
-It is recommended to run with Docker, as the Docker image already has OpenBabel installed.
+It is recommended to run with Docker, as the Docker image already has OpenBabel installed. The image builds
+OpenBabel 3.2.1 from source, since Ubuntu only packages 3.1.1. To change version, update `OPENBABEL_VERSION` and
+`OPENBABEL_SHA256` in the `Dockerfile`.
 
-If running via maven, OpenBabel also needs to be installed on the system. 
+If running via maven, OpenBabel 3.x also needs to be installed on the system (3.2.1 is what the Docker image uses).
 [OpenBabel installation](https://openbabel.org/docs/Installation/install.html)
 
 ## Test
