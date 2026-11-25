@@ -33,13 +33,13 @@
     <dependency>
       <groupId>com.epam.indigo</groupId>
       <artifactId>indigo</artifactId>
-      <version>1.46.0</version>
+      <version>1.49.0</version>
     </dependency>
 
     <dependency>
       <groupId>com.epam.indigo</groupId>
       <artifactId>indigo-renderer</artifactId>
-      <version>1.46.0</version>
+      <version>1.49.0</version>
     </dependency>
 
     <dependency>
